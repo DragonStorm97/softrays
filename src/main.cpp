@@ -12,6 +12,7 @@
 #include <thread>
 #if defined(PLATFORM_WEB)
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 constexpr auto screenWidth = 600;
@@ -19,10 +20,26 @@ constexpr auto screenHeight = 480;
 
 void UpdateDrawFrame(raylib::TextureUnmanaged* target)
 {
-  static std::vector<Color> pixels(static_cast<std::size_t>(screenWidth * screenHeight), raylib::Color::Beige());
+  static std::vector<std::uint8_t> pixels(static_cast<std::size_t>(screenWidth * screenHeight * 4), 90);
 
   const double time = GetTime();
   const auto fps = 1.0F / GetFrameTime();
+
+#if defined(PLATFORM_WEB)
+  {
+    double cssW = 0;
+    double cssH = 0;
+    emscripten_get_element_css_size("#canvas", &cssW, &cssH);
+    SetWindowSize(static_cast<int>(cssW), static_cast<int>(cssH));
+  }
+#endif
+
+  const auto windowWidth = GetScreenWidth();
+  const auto windowHeight = GetScreenHeight();
+
+  if (static_cast<std::size_t>(windowHeight) * static_cast<std::size_t>(windowWidth) * 4UL != pixels.size()) {
+    // TODO: resize our texture
+  }
 
   BeginDrawing();
   ClearBackground(raylib::Color::DarkGray());
@@ -35,6 +52,13 @@ void UpdateDrawFrame(raylib::TextureUnmanaged* target)
 
   EndDrawing();
 }
+
+#if defined(PLATFORM_WEB)
+void UpdateEmscriptenFrame(void* target)
+{
+  UpdateDrawFrame(static_cast<raylib::TextureUnmanaged*>(target));
+}
+#endif
 
 int main()
 {
@@ -49,8 +73,8 @@ int main()
   double cssW = 0;
   double cssH = 0;
   emscripten_get_element_css_size("#canvas", &cssW, &cssH);
-  main_window.SetSize({static_cast<float>(cssW), static_cast<float>(cssH)});
-  emscripten_set_main_loop_arg(&UpdateDrawFrame, &target, 60, 1);
+  SetWindowSize(static_cast<int>(cssW), static_cast<int>(cssH));
+  emscripten_set_main_loop_arg(&UpdateEmscriptenFrame, &target, 60, 1);
 #else
   SetTargetFPS(60);
 
