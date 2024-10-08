@@ -1,7 +1,11 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 #include <ostream>
+#include <sstream>
+#include <vector>
+
 struct Vec3 {
   double x;
   double y;
@@ -110,7 +114,22 @@ constexpr inline void write_color(std::ostream& out, const Colour& pixel_colour)
   out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
 }
 
-struct Ray {
-  Point3 Origin;
-  Vec3 Direction;
-};
+[[nodiscard]] inline std::string to_ppm(int width, int height, const std::vector<Colour>& data)
+{
+  std::stringstream stream;
+  stream << "P3\n"
+         << width << ' ' << height << "\n255\n";
+  for (const Colour& colour : data) {
+    write_color(stream, colour);
+  }
+  return stream.str();
+}
+
+inline void output_ppm(int width, int height, const std::vector<Colour>& data)
+{
+  std::cout << "P3\n"
+            << width << ' ' << height << "\n255\n";
+  for (const Colour& colour : data) {
+    write_color(std::cout, colour);
+  }
+}
