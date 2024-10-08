@@ -59,8 +59,9 @@ void UpdateDrawFrame(raylib::TextureUnmanaged* target)
   raytracer.Render();
   target->Update(raytracer.GetRGBAData().data());
 
+  target->Draw(0, 0);
   // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom)
-  target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(-target->height)}, {0, 0}, WHITE);
+  // target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(target->height)}, {0, 0}, WHITE);
 
   raylib::DrawText(TextFormat("%3.1f", fps), 10, 10, 30, raylib::Color::Green());  // NOLINT
 

@@ -10,6 +10,11 @@ class RayTracer {
   struct Ray {
     Point3 Origin;
     Vec3 Direction;
+
+    [[nodiscard]] Point3 at(double val) const noexcept
+    {
+      return Origin + (Direction * val);
+    }
   };
 
   private:
