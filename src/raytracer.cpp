@@ -35,11 +35,11 @@ void RayTracer::Render()
 double hit_sphere(const Point3& center, double radius, const RayTracer::Ray& ray)
 {
   const Vec3 o_c = center - ray.Origin;
-  const auto a = ray.Direction.dot(ray.Direction);
-  const auto b = -2.0 * ray.Direction.dot(o_c);
-  const auto c = o_c.dot(o_c) - (radius * radius);
-  const auto discriminant = (b * b) - (4 * a * c);
-  return discriminant < 0 ? -1.0 : ((-b - std::sqrt(discriminant)) / (a * 2.0));
+  const auto a = ray.Direction.length_squared();
+  const auto h = ray.Direction.dot(o_c);
+  const auto c = o_c.length_squared() - (radius * radius);
+  const auto discriminant = (h) - (a * c);
+  return discriminant < 0 ? -1.0 : ((h - std::sqrt(discriminant)) / a);
 }
 
 Colour RayTracer::RayColour(const Ray& ray) const
