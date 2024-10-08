@@ -1,0 +1,96 @@
+# TODO: add a build matrix
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
+name: CMake on a single platform
+
+on:
+  push:
+    tags:
+      - "*"
+  pull_request:
+    branches: ["main"]
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  # TODO: refine CI/CD cmake presets and workflow!
+  BUILD_PRESET: cicd
+  WEB_BUILD_PRESET: cicd-web
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # TODO:can convert this to a matrix build if you need cross-platform coverage.
+    #   NOTE: the web preset probably doesn't have to be run for all of them...
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      discussions: write
+
+    # TODO: get actions-cache-folder working
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.29"
+          # actions-cache-folder: "cmake-cache"
+
+      - name: Install Linux dependencies
+        # TODO: add this when we switch to a matrix:
+        # if: startsWith(matrix.os,'ubuntu')
+        run: sudo apt-get update && sudo apt-get install -y --fix-missing xorg-dev libglu1-mesa-dev
+
+      - name: Setup Ninja
+        uses: ashutoshvarma/setup-ninja@master
+        with:
+          # ninja version to download. Default: 1.10.0
+          version: 1.10.0
+          # actions-cache-folder: "ninja-cache"
+
+      - name: Setup emsdk
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          # Make sure to set a version number!
+          version: latest
+          # version: 1.38.40
+          # This is the name of the cache folder.
+          # The cache folder will be placed in the build directory,
+          #  so make sure it doesn't conflict with anything!
+          # actions-cache-folder: "emsdk-cache"
+
+      - name: Verify emsdk
+        run: emcc -v && echo ${{env.EMSDK}}
+
+      - name: Run CMake Web Workflow
+        run: cmake --workflow --preset=${{env.WEB_BUILD_PRESET}}
+
+      - name: Run CMake Workflow
+        run: cmake --workflow --preset=${{env.BUILD_PRESET}}
+
+      - uses: fregante/setup-git-user@v2
+      - name: Create release assets branch
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git checkout --orphan release-artifacts-${{github.ref_name}} &&
+          git rm --cached -r . && 
+          git add release/raw/ -f &&
+          git status &&
+          git commit -m "release" &&
+          git push -f --set-upstream origin release-artifacts-${{github.ref_name}} &&
+          git checkout -b release-artifacts-latest &&
+          git push -f --set-upstream origin release-artifacts-latest
+
+      - name: Pack raw files
+        if: startsWith(github.ref, 'refs/tags/')
+        run: find release/raw/*/ -maxdepth 0 -type d -exec sh -c 'cd "{}" && zip -r "../../$(basename "{}").zip" ./*' \;
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            release/*.zip
