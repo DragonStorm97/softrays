@@ -74,6 +74,7 @@ public:
       return hit_anything;
     }
   };
+
   Point3 CameraPosition{0, 0, 0};
 
   private:

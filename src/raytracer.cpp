@@ -3,7 +3,6 @@
 
 void RayTracer::Render()
 {
-  // TODO: can move these into a camera struct at some point?
   const auto focal_length = 1.0;
   const auto viewport_height = 2.0;  // NOLINT
   const auto viewport_width = viewport_height * (static_cast<double>(width) / height);
