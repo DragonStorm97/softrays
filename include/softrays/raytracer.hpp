@@ -42,7 +42,7 @@ public:
     Hittable& operator=(const Hittable&) = default;
     Hittable& operator=(Hittable&&) = default;
     virtual ~Hittable() = default;
-    [[nodiscard]] virtual bool Hit(const Ray& ray, double ray_tmin, double ray_tmax, HitData& hit) const = 0;
+    [[nodiscard]] virtual bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const = 0;
   };
 
   // TODO: I REALLY HATE THIS, replace this ASAP
@@ -58,14 +58,14 @@ public:
       Objects.push_back(object);
     }
 
-    [[nodiscard]] bool Hit(const Ray& ray, double ray_tmin, double ray_tmax, HitData& hit) const override
+    [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
     {
       RayTracer::HitData temp_hit{};
       bool hit_anything = false;
-      double closest_so_far = ray_tmax;
+      double closest_so_far = ray_time.Max;
 
       for (const auto& object : Objects) {
-        if (object->Hit(ray, ray_tmin, closest_so_far, temp_hit)) {
+        if (object->Hit(ray, {ray_time.Min, closest_so_far}, temp_hit)) {
           closest_so_far = temp_hit.Time;
           hit_anything = true;
           hit = temp_hit;

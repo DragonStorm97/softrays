@@ -146,3 +146,29 @@ inline double DegreesToRadians(double degrees)
 {
   return degrees * DegreesToRadiansFactor;
 }
+
+struct Interval {
+  double Min = -Infinity;
+  double Max = Infinity;
+
+  [[nodiscard]] double Size() const noexcept
+  {
+    return Max - Min;
+  }
+
+  [[nodiscard]] bool Contains(double x) const noexcept
+  {
+    return Min <= x && x <= Max;
+  }
+
+  [[nodiscard]] bool Surrounds(double x) const noexcept
+  {
+    return Min < x && x < Max;
+  }
+
+  const static Interval Empty;
+  const static Interval Universe;
+};
+
+inline const Interval Interval::Empty = Interval{};
+inline const Interval Interval::Universe = Interval{-Infinity, Infinity};

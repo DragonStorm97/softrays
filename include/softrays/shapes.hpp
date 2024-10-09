@@ -11,7 +11,7 @@ class Sphere : public RayTracer::Hittable {
   Sphere(const Point3& center, double radius) noexcept
       : Center(center), Radius(std::fmax(0, radius)) { }
 
-  [[nodiscard]] bool Hit(const RayTracer::Ray& ray, double ray_tmin, double ray_tmax, RayTracer::HitData& hit) const override
+  [[nodiscard]] bool Hit(const RayTracer::Ray& ray, Interval ray_time, RayTracer::HitData& hit) const override
   {
     const Vec3 o_c = Center - ray.Origin;
     const auto a = ray.Direction.length_squared();
@@ -27,9 +27,9 @@ class Sphere : public RayTracer::Hittable {
 
     // Find the nearest root that lies in the acceptable range.
     auto root = (h - sqrtd) / a;
-    if (root <= ray_tmin || ray_tmax <= root) {
+    if (!ray_time.Surrounds(root)) {
       root = (h + sqrtd) / a;
-      if (root <= ray_tmin || ray_tmax <= root)
+      if (!ray_time.Surrounds(root))
         return false;
     }
 

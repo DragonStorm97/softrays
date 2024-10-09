@@ -35,7 +35,7 @@ void RayTracer::Render()
 Colour RayTracer::RayColour(const Ray& ray, const Hittable& world) const
 {
   HitData hit;
-  if (world.Hit(ray, 0, Infinity, hit)) {
+  if (world.Hit(ray, {0, Infinity}, hit)) {
     return (hit.Normal + Colour{1, 1, 1}) * 0.5;
   }
 
