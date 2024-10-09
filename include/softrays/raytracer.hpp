@@ -16,11 +16,14 @@ class RayTracer {
     }
   };
 
+  struct Material;
+
   struct HitData {
     Point3 Location;
     Vec3 Normal;
     double Time;
     bool FrontFace;
+    std::shared_ptr<RayTracer::Material> Material;
 
     // TODO: do we really want this here?
     void SetFaceNormal(const Ray& ray, const Vec3& outward_normal)
@@ -30,6 +33,20 @@ class RayTracer {
 
       FrontFace = ray.Direction.dot(outward_normal) < 0;
       Normal = FrontFace ? outward_normal : -outward_normal;
+    }
+  };
+
+  struct Material {
+    Material() = default;
+    Material(const Material&) = default;
+    Material(Material&&) = delete;
+    Material& operator=(const Material&) = default;
+    Material& operator=(Material&&) = delete;
+
+    virtual ~Material() = default;
+    [[nodiscard]] virtual bool Scatter([[maybe_unused]] const Ray& ray, [[maybe_unused]] const HitData& hit, [[maybe_unused]] Colour& attenuation, [[maybe_unused]] Ray& scattered) const
+    {
+      return false;
     }
   };
 
@@ -82,7 +99,7 @@ public:
   private:
   int width = 600;  // NOLINT
   int height = 400;  // NOLINT
-  int SamplesPerPixel = 100;  // Count of random samples for each pixel
+  int SamplesPerPixel = 100;  // NOLINT  // Count of random samples for each pixel
   double PixelSamplesScale = 1.0 / SamplesPerPixel;
 
   HittableList World;

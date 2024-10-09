@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <softrays.hpp>
 
+#include "material.hpp"
 #include "raylib.h"
 #include "raytracer.hpp"
 #include "shapes.hpp"
@@ -16,8 +17,8 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr auto screenWidth = 800;
-constexpr auto screenHeight = 600;
+constexpr auto screenWidth = 400;
+constexpr auto screenHeight = 300;
 
 class Renderer {
   RayTracer raytracer;
@@ -87,8 +88,16 @@ class Renderer {
   void Start()
   {
     auto& world = raytracer.GetWorld();
-    world.Add(std::make_shared<Sphere>(Point3(0, 0, -1), 0.5));
-    world.Add(std::make_shared<Sphere>(Point3(0, -100.5, -1), 100));
+
+    auto material_ground = std::make_shared<lambertian>(Colour{0.8, 0.8, 0.0});  // NOLINT
+    auto material_center = std::make_shared<lambertian>(Colour{0.1, 0.2, 0.5});  // NOLINT
+    auto material_left = std::make_shared<metal>(Colour{0.8, 0.8, 0.8}, 0.3);  // NOLINT
+    auto material_right = std::make_shared<metal>(Colour{0.8, 0.6, 0.2}, 1.0);  // NOLINT
+
+    world.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));  // NOLINT
+    world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, material_center));  // NOLINT
+    world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));  // NOLINT
+    world.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));  // NOLINT
 
 #if defined(PLATFORM_WEB)
     double cssW = 0;

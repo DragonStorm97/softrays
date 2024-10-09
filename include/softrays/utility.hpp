@@ -103,15 +103,16 @@ struct Vec3 {
 
   [[nodiscard]] static inline Vec3 RandomUnitVector() noexcept
   {
-    // this was in the book, but surely we are better off getting a random vector and just normalising it???
-    // while (true) {
-    //   const auto p = Vec3::Random(-1.0, 1.0);
-    //   const auto lensq = p.length_squared();
-    //   if (1e-160 < lensq && lensq <= 1) {
-    //     return p / std::sqrt(lensq);
-    //   }
-    // }
-    return Vec3::Random().unit_vector();
+    // NOTE: this was in the book, but surely we are better off getting a random vector and just normalising it???
+    while (true) {
+      const auto p = Vec3::Random(-1.0, 1.0);
+      const auto lensq = p.length_squared();
+      if (1e-160 < lensq && lensq <= 1) {
+        return p / std::sqrt(lensq);
+      }
+    }
+    // NOTE: I tried this, but it did look different for some reason
+    // return Vec3::Random().unit_vector();
   }
 
   [[nodiscard]] inline static Vec3 Random()
@@ -122,6 +123,16 @@ struct Vec3 {
   [[nodiscard]] inline static Vec3 Random(double min, double max)
   {
     return Vec3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
+  }
+  [[nodiscard]] constexpr bool near_zero() const noexcept
+  {
+    // Return true if the vector is close to zero in all dimensions.
+    auto s = 1e-8;
+    return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
+  }
+  [[nodiscard]] constexpr inline Vec3 Reflect(const Vec3& normal) const noexcept
+  {
+    return *this - normal * dot(normal) * 2;
   }
 };
 

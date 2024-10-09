@@ -1,15 +1,19 @@
 #pragma once
 
 #include <raytracer.hpp>
+#include <utility>
 
 class Sphere : public RayTracer::Hittable {
   private:
   Point3 Center;
   double Radius;
+  std::shared_ptr<RayTracer::Material> Material;
 
   public:
-  Sphere(const Point3& center, double radius) noexcept
-      : Center(center), Radius(std::fmax(0, radius)) { }
+  Sphere(const Point3& center, double radius, std::shared_ptr<RayTracer::Material>&& mat) noexcept
+      : Center(center), Radius(std::fmax(0, radius)), Material(std::move(mat))
+  {
+  }
 
   [[nodiscard]] bool Hit(const RayTracer::Ray& ray, Interval ray_time, RayTracer::HitData& hit) const override
   {
@@ -37,7 +41,7 @@ class Sphere : public RayTracer::Hittable {
     hit.Location = ray.at(hit.Time);
     const Vec3 outward_normal = (hit.Location - Center) / Radius;
     hit.SetFaceNormal(ray, outward_normal);
-
+    hit.Material = Material;
     return true;
   }
 };

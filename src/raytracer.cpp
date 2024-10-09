@@ -72,10 +72,12 @@ Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) co
 
   HitData hit;
   if (world.Hit(ray, {0.001, Infinity}, hit)) {
-    // const Vec3 direction = RandomOnHemisphere(hit.Normal);
-    const Vec3 direction = hit.Normal + Vec3::RandomUnitVector();
-    return RayColour(Ray{hit.Location, direction}, depth - 1, world) * 0.5;
-    // return (hit.Normal + Colour{1, 1, 1}) * 0.5;
+    Ray scattered{};
+    Colour attenuation{};
+    if (hit.Material->Scatter(ray, hit, attenuation, scattered)) {
+      return RayColour(scattered, depth - 1, World) * attenuation;
+    }
+    return {0, 0, 0};
   }
 
   Vec3 unit_direction = ray.Direction.unit_vector();
@@ -99,12 +101,21 @@ const std::vector<std::uint8_t>& RayTracer::GetRGBAData()
   static constexpr int byteMax{256};
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      // NOTE: we don't do gamma-correction here
       const auto pixel_start = static_cast<std::size_t>((y * width) + x);
       const auto rl_pixel_start = static_cast<std::size_t>(((y * width) + x) * 4);
-      rlPixels[rl_pixel_start] = static_cast<std::uint8_t>(intensity.Clamp(pixels[pixel_start].x) * byteMax);
-      rlPixels[rl_pixel_start + 1] = static_cast<std::uint8_t>(intensity.Clamp(pixels[pixel_start].y) * byteMax);
-      rlPixels[rl_pixel_start + 2] = static_cast<std::uint8_t>(intensity.Clamp(pixels[pixel_start].z) * byteMax);
+
+      // NOTE: are we supposed to do gamma-correction here? (it does look more like the book with it)
+      // const auto r = (pixels[pixel_start].x);
+      // const auto g = (pixels[pixel_start].y);
+      // const auto b = (pixels[pixel_start].z);
+
+      const auto r = linear_to_gamma(pixels[pixel_start].x);
+      const auto g = linear_to_gamma(pixels[pixel_start].y);
+      const auto b = linear_to_gamma(pixels[pixel_start].z);
+
+      rlPixels[rl_pixel_start] = static_cast<std::uint8_t>(intensity.Clamp(r) * byteMax);
+      rlPixels[rl_pixel_start + 1] = static_cast<std::uint8_t>(intensity.Clamp(g) * byteMax);
+      rlPixels[rl_pixel_start + 2] = static_cast<std::uint8_t>(intensity.Clamp(b) * byteMax);
       rlPixels[rl_pixel_start + 3] = 255;
     }
   }
