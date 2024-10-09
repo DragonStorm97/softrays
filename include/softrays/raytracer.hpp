@@ -77,6 +77,8 @@ public:
 
   Point3 CameraPosition{0, 0, 0};
 
+  int MaxDepth = 50;  // NOLINT
+
   private:
   int width = 600;  // NOLINT
   int height = 400;  // NOLINT
@@ -87,7 +89,7 @@ public:
   std::vector<std::uint8_t> rlPixels;
   std::vector<Colour> pixels;
 
-  [[nodiscard]] Colour RayColour(const Ray& ray, const class Hittable& World) const;
+  [[nodiscard]] Colour RayColour(const Ray& ray, int depth, const class Hittable& World) const;
 
   public:
   [[nodiscard]] int GetSamplesPerPixel() const noexcept

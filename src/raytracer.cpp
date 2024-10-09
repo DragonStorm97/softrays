@@ -48,13 +48,13 @@ void RayTracer::Render()
       if (SamplesPerPixel > 1) {
         for (int sample = 0; sample < SamplesPerPixel; ++sample) {
           const auto ray = GetRayForPixel(x, y, pixel00_loc, pixel_delta_u, pixel_delta_v);
-          pixel_colour += RayColour(ray, World);
+          pixel_colour += RayColour(ray, MaxDepth, World);
         }
       } else {
         const auto pixel_center = pixel00_loc + (pixel_delta_u * x) + (pixel_delta_v * y);
         const auto ray_direction = pixel_center - CameraPosition;
         const Ray ray(CameraPosition, ray_direction);
-        pixel_colour = RayColour(ray, World);
+        pixel_colour = RayColour(ray, MaxDepth, World);
       }
 
       const auto pixel_start = static_cast<std::size_t>((y * width) + x);
@@ -63,11 +63,19 @@ void RayTracer::Render()
   }
 }
 
-Colour RayTracer::RayColour(const Ray& ray, const Hittable& world) const
+Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) const
 {
+  // If we've exceeded the ray bounce limit, no more light is gathered.
+  if (depth <= 0) {
+    return Colour{0, 0, 0};
+  }
+
   HitData hit;
-  if (world.Hit(ray, {0, Infinity}, hit)) {
-    return (hit.Normal + Colour{1, 1, 1}) * 0.5;
+  if (world.Hit(ray, {0.001, Infinity}, hit)) {
+    // const Vec3 direction = RandomOnHemisphere(hit.Normal);
+    const Vec3 direction = hit.Normal + Vec3::RandomUnitVector();
+    return RayColour(Ray{hit.Location, direction}, depth - 1, world) * 0.5;
+    // return (hit.Normal + Colour{1, 1, 1}) * 0.5;
   }
 
   Vec3 unit_direction = ray.Direction.unit_vector();
@@ -91,6 +99,7 @@ const std::vector<std::uint8_t>& RayTracer::GetRGBAData()
   static constexpr int byteMax{256};
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
+      // NOTE: we don't do gamma-correction here
       const auto pixel_start = static_cast<std::size_t>((y * width) + x);
       const auto rl_pixel_start = static_cast<std::size_t>(((y * width) + x) * 4);
       rlPixels[rl_pixel_start] = static_cast<std::uint8_t>(intensity.Clamp(pixels[pixel_start].x) * byteMax);
