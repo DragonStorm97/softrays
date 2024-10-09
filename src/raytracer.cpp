@@ -1,3 +1,4 @@
+#include "shapes.hpp"
 #include <raytracer.hpp>
 
 void RayTracer::Render()
@@ -26,27 +27,16 @@ void RayTracer::Render()
       const auto ray_direction = pixel_center - CameraPosition;
       const Ray r(CameraPosition, ray_direction);
       const auto pixel_start = static_cast<std::size_t>((y * width) + x);
-      pixels[pixel_start] = RayColour(r);
+      pixels[pixel_start] = RayColour(r, World);
     }
   }
 }
 
-double hit_sphere(const Point3& center, double radius, const RayTracer::Ray& ray)
+Colour RayTracer::RayColour(const Ray& ray, const Hittable& world) const
 {
-  const Vec3 o_c = center - ray.Origin;
-  const auto a = ray.Direction.length_squared();
-  const auto h = ray.Direction.dot(o_c);
-  const auto c = o_c.length_squared() - (radius * radius);
-  const auto discriminant = (h) - (a * c);
-  return discriminant < 0 ? -1.0 : ((h - std::sqrt(discriminant)) / a);
-}
-
-Colour RayTracer::RayColour(const Ray& ray) const
-{
-  auto t = hit_sphere(Point3(0, 0, -1), 0.5, ray);
-  if (t > 0.0) {
-    Vec3 N = (ray.at(t) - Vec3(0, 0, -1)).unit_vector();
-    return Colour{N.x + 1, N.y + 1, N.z + 1} * 0.5;
+  HitData hit;
+  if (world.Hit(ray, 0, Infinity, hit)) {
+    return (hit.Normal + Colour{1, 1, 1}) * 0.5;
   }
 
   Vec3 unit_direction = ray.Direction.unit_vector();

@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <numbers>
 #include <ostream>
 #include <sstream>
 #include <vector>
@@ -132,4 +133,16 @@ inline void output_ppm(int width, int height, const std::vector<Colour>& data)
   for (const Colour& colour : data) {
     write_color(std::cout, colour);
   }
+}
+
+// Constants
+constexpr auto Infinity = std::numeric_limits<double>::infinity();
+constexpr double Pi = std::numbers::pi;
+constexpr auto DegreesToRadiansFactor = Pi / 180.0;
+
+// Utility Functions
+
+inline double DegreesToRadians(double degrees)
+{
+  return degrees * DegreesToRadiansFactor;
 }
