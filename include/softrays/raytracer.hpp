@@ -17,6 +17,8 @@ class RayTracer {
     }
   };
 
+  Point3 CameraPosition{0, 0, 0};
+
   private:
   int width = 600;  // NOLINT
   int height = 400;  // NOLINT
