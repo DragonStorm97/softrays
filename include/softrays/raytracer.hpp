@@ -80,6 +80,8 @@ public:
   private:
   int width = 600;  // NOLINT
   int height = 400;  // NOLINT
+  int SamplesPerPixel = 100;  // Count of random samples for each pixel
+  double PixelSamplesScale = 1.0 / SamplesPerPixel;
 
   HittableList World;
   std::vector<std::uint8_t> rlPixels;
@@ -88,11 +90,21 @@ public:
   [[nodiscard]] Colour RayColour(const Ray& ray, const class Hittable& World) const;
 
   public:
+  [[nodiscard]] int GetSamplesPerPixel() const noexcept
+  {
+    return SamplesPerPixel;
+  }
+  void SetSamplesPerPixel(int spp)
+  {
+    SamplesPerPixel = spp;
+    PixelSamplesScale = 1.0 / spp;
+  }
+
   [[nodiscard]] HittableList& GetWorld() { return World; }
   void ResizeViewport(int width, int height);
 
+  [[nodiscard]] Ray GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const;
   [[nodiscard]] const std::vector<std::uint8_t>& GetRGBAData();
-  // const std::span<std::uint8_t> GetPixelData() const;
   void Render();
   [[nodiscard]] const std::vector<Colour>& GetPixelData() const { return pixels; }
 };

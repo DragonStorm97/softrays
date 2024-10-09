@@ -1,20 +1,20 @@
 #include <cstddef>
-#include <cstdint>
 #include <softrays.hpp>
 
-#include "TextureUnmanaged.hpp"
 #include "raylib.h"
 #include "raytracer.hpp"
 #include "shapes.hpp"
 #include <raylib-cpp.hpp>
 
 #include <cmath>
-#include <thread>
 #if defined(PLATFORM_WEB)
 #include <emscripten.h>
 #include <emscripten/html5.h>
 void RenderLoopCallback(void* arg);
 #endif
+
+// NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
+// but is slightly slower if build without
 
 constexpr auto screenWidth = 800;
 constexpr auto screenHeight = 600;
@@ -49,8 +49,8 @@ class Renderer {
   }
   void UpdateDrawFrame()
   {
-    const double time = GetTime();
-    const auto fps = 1.0 / static_cast<double>(GetFrameTime());
+    const auto time = static_cast<double>(GetFrameTime());
+    const auto fps = 1.0 / time;
 
 #if defined(PLATFORM_WEB)
     {
@@ -79,7 +79,7 @@ class Renderer {
     // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom) (our raytracer takes care of that already)
     // target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(target->height)}, {0, 0}, WHITE);
 
-    raylib::DrawText(TextFormat("%3.1f", fps), 10, 10, 30, raylib::Color::Green());  // NOLINT
+    raylib::DrawText(TextFormat("%3.3f fps @ %3.4f seconds %1d spp", fps, time, raytracer.GetSamplesPerPixel()), 10, 10, 30, raylib::Color::Green());  // NOLINT
 
     EndDrawing();
   }
@@ -95,6 +95,7 @@ class Renderer {
     double cssH = 0;
     emscripten_get_element_css_size("#canvas", &cssW, &cssH);
     SetWindowSize(static_cast<int>(cssW), static_cast<int>(cssH));
+    std::cout << "window(" << GetScreenWidth() << "x" << GetScreenHeight() << ")" << std::endl;
     emscripten_set_main_loop_arg(&RenderLoopCallback, this, 60, 1);
 #else
     bool should_quit = false;

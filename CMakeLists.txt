@@ -33,7 +33,7 @@ include(cmake/Coverage.cmake)
 if(softrays_IS_TOP_LEVEL_PROJECT)
   # Generate compile_commands.json
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-  option(softrays_ENABLE_COVERAGE "Enable Coverage for softrays" ON)
+  option(softrays_ENABLE_COVERAGE "Enable Coverage for softrays" OFF)
   option(softrays_ENABLE_CATCH2_TESTS "Enable Tests for softrays" ON)
   option(softrays_ENABLE_GLOBS "Enable GLOB sourcing for softrays" ON)
   option(softrays_ENABLE_RAYLIB "Enable Raylib for softrays" ON)

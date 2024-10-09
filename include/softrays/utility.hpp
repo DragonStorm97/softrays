@@ -4,13 +4,14 @@
 #include <iostream>
 #include <numbers>
 #include <ostream>
+#include <random>
 #include <sstream>
 #include <vector>
 
 struct Vec3 {
-  double x;
-  double y;
-  double z;
+  double x = 0.0;
+  double y = 0.0;
+  double z = 0.0;
 
   [[nodiscard]] constexpr Vec3 operator-() const noexcept
   {
@@ -98,43 +99,6 @@ inline std::ostream& operator<<(std::ostream& out, const Vec3& vec)
 
 using Colour = Vec3;
 
-constexpr auto ColourByteFactor = 255.999;
-
-constexpr inline void write_color(std::ostream& out, const Colour& pixel_colour)
-{
-  const auto r = pixel_colour.x;
-  const auto g = pixel_colour.x;
-  const auto b = pixel_colour.x;
-
-  // Translate the [0,1] component values to the byte range [0,255].
-  const auto rbyte = static_cast<std::uint8_t>(ColourByteFactor * r);
-  const auto gbyte = static_cast<std::uint8_t>(ColourByteFactor * g);
-  const auto bbyte = static_cast<std::uint8_t>(ColourByteFactor * b);
-
-  // Write out the pixel color components.
-  out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
-}
-
-[[nodiscard]] inline std::string to_ppm(int width, int height, const std::vector<Colour>& data)
-{
-  std::stringstream stream;
-  stream << "P3\n"
-         << width << ' ' << height << "\n255\n";
-  for (const Colour& colour : data) {
-    write_color(stream, colour);
-  }
-  return stream.str();
-}
-
-inline void output_ppm(int width, int height, const std::vector<Colour>& data)
-{
-  std::cout << "P3\n"
-            << width << ' ' << height << "\n255\n";
-  for (const Colour& colour : data) {
-    write_color(std::cout, colour);
-  }
-}
-
 // Constants
 constexpr auto Infinity = std::numeric_limits<double>::infinity();
 constexpr double Pi = std::numbers::pi;
@@ -166,9 +130,57 @@ struct Interval {
     return Min < x && x < Max;
   }
 
+  [[nodiscard]] double Clamp(double x) const noexcept
+  {
+    return std::clamp(x, Min, Max);
+  }
   const static Interval Empty;
   const static Interval Universe;
 };
 
 inline const Interval Interval::Empty = Interval{};
 inline const Interval Interval::Universe = Interval{-Infinity, Infinity};
+
+inline double RandomDouble()
+{
+  static std::random_device rd;
+  static std::mt19937 generator{rd()};
+  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+  return distribution(generator);
+}
+
+constexpr inline void write_color(std::ostream& out, const Colour& pixel_colour)
+{
+  const auto r = pixel_colour.x;
+  const auto g = pixel_colour.x;
+  const auto b = pixel_colour.x;
+
+  // Translate the [0,1] component values to the byte range [0,255].
+  static constexpr Interval intensity(0.000, 0.999);
+  const auto rbyte = static_cast<std::uint8_t>(256 * intensity.Clamp(r));
+  const auto gbyte = static_cast<std::uint8_t>(256 * intensity.Clamp(g));
+  const auto bbyte = static_cast<std::uint8_t>(256 * intensity.Clamp(b));
+
+  // Write out the pixel color components.
+  out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
+}
+
+[[nodiscard]] inline std::string to_ppm(int width, int height, const std::vector<Colour>& data)
+{
+  std::stringstream stream;
+  stream << "P3\n"
+         << width << ' ' << height << "\n255\n";
+  for (const Colour& colour : data) {
+    write_color(stream, colour);
+  }
+  return stream.str();
+}
+
+inline void output_ppm(int width, int height, const std::vector<Colour>& data)
+{
+  std::cout << "P3\n"
+            << width << ' ' << height << "\n255\n";
+  for (const Colour& colour : data) {
+    write_color(std::cout, colour);
+  }
+}
