@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -221,7 +222,7 @@ constexpr inline double linear_to_gamma(double linear_component)
   return 0;
 }
 
-[[nodiscard]] inline void StreamPPM(std::ostream& stream, int width, int height, const std::vector<std::uint8_t>& data)
+inline void StreamPPM(std::ostream& stream, int width, int height, const std::vector<std::uint8_t>& data)
 {
   stream << "P3\n"
          << width << ' ' << height << "\n255\n";
