@@ -149,6 +149,17 @@ struct Vec3 {
   // In the same hemisphere as the normal
   return (on_unit_sphere.dot(normal) > 0.0) ? on_unit_sphere : -on_unit_sphere;
 }
+
+[[nodiscard]] inline Vec3 RandomInUnitDisk() noexcept
+{
+  // TODO: again, surely there's a better way than looping
+  while (true) {
+    auto p = Vec3{RandomDouble(-1, 1), RandomDouble(-1, 1), 0};
+    if (p.length_squared() < 1)
+      return p;
+  }
+}
+
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
 using Point3 = Vec3;
 

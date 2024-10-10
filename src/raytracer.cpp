@@ -1,4 +1,5 @@
 #include "shapes.hpp"
+#include "utility.hpp"
 #include <raytracer.hpp>
 
 Vec3 sample_square()
@@ -6,19 +7,25 @@ Vec3 sample_square()
   // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
   return Vec3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0);
 }
+Point3 RayTracer::DefocusDiskSample() const noexcept
+{
+  // Returns a random point in the camera defocus disk.
+  const auto p = RandomInUnitDisk();
+  return CameraPosition + (defocus_disk_u * p.x) + (defocus_disk_v * p.y);
+}
 
 RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const
 {
-  // Construct a camera ray originating from the origin and directed at randomly sampled
+  // Construct a camera ray originating from the defocus disk and directed at a randomly
   // point around the pixel location x, y.
 
-  auto offset = sample_square();
-  auto pixel_sample = pixel00_loc
+  const auto offset = sample_square();
+  const auto pixel_sample = pixel00_loc
       + (pixel_delta_u * (x + offset.x))
       + (pixel_delta_v * (y + offset.y));
 
-  auto ray_origin = CameraPosition;
-  auto ray_direction = pixel_sample - ray_origin;
+  const auto ray_origin = (defocus_angle <= 0) ? CameraPosition : DefocusDiskSample();
+  const auto ray_direction = pixel_sample - ray_origin;
 
   return Ray{ray_origin, ray_direction};
 }
@@ -27,11 +34,9 @@ void RayTracer::Render()
 {
   CameraPosition = lookfrom;
 
-  const auto focal_length = (lookfrom - lookat).length();
-
   const auto theta = DegreesToRadians(vfov);
   const auto h = std::tan(theta / 2);
-  const auto viewport_height = 2 * h * focal_length;
+  const auto viewport_height = 2 * h * focus_dist;
   const auto viewport_width = viewport_height * (static_cast<double>(width) / height);
 
   // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
@@ -49,8 +54,13 @@ void RayTracer::Render()
   const auto pixel_delta_v = viewport_v / height;
 
   // Calculate the location of the upper left pixel.
-  const auto viewport_upper_left = CameraPosition - (w * focal_length) - (viewport_u / 2) - (viewport_v / 2);
+  const auto viewport_upper_left = CameraPosition - (w * focus_dist) - (viewport_u / 2) - (viewport_v / 2);
   const auto pixel00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) * 0.5);
+
+  // Calculate the camera defocus disk basis vectors.
+  const auto defocus_radius = focus_dist * std::tan(DegreesToRadians(defocus_angle / 2));
+  defocus_disk_u = u * defocus_radius;
+  defocus_disk_v = v * defocus_radius;
 
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {

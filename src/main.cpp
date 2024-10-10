@@ -106,6 +106,9 @@ class Renderer {
     raytracer.vup = Vec3(0, 1, 0);
     raytracer.vfov = 20;
 
+    raytracer.defocus_angle = 10;
+    raytracer.focus_dist = 3.4;
+
 #if defined(PLATFORM_WEB)
     double cssW = 0;
     double cssH = 0;
