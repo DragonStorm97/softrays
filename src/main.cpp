@@ -179,6 +179,10 @@ int main()
 #if defined(PLATFORM_WEB)
 void RenderLoopCallback(void* arg)
 {
-  static_cast<Renderer*>(arg)->UpdateDrawFrame();
+  static bool was_drawn = false;
+  if (!was_drawn) {
+    static_cast<Renderer*>(arg)->UpdateDrawFrame();
+    was_drawn = true;
+  }
 }
 #endif
