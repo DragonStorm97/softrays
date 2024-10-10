@@ -124,10 +124,13 @@ class Renderer {
 
     auto material3 = std::make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
-
+#if defined(PLATFORM_WEB)
+    raytracer.SetSamplesPerPixel(5);
+    raytracer.MaxDepth = 10;
+#else
     raytracer.SetSamplesPerPixel(500);
     raytracer.MaxDepth = 50;
-
+#endif
     raytracer.vfov = 20;
     raytracer.lookfrom = Point3(13, 2, 3);
     raytracer.lookat = Point3(0, 0, 0);
