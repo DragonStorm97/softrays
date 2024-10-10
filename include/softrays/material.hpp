@@ -39,9 +39,9 @@ class metal : public RayTracer::Material {
   double fuzz{};
 };
 
-class dialectric : public RayTracer::Material {
+class dielectric : public RayTracer::Material {
   public:
-  dialectric(double refraction_index) noexcept : refraction_index(refraction_index) { }
+  dielectric(double refraction_index) noexcept : refraction_index(refraction_index) { }
   [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
       Colour& attenuation, RayTracer::Ray& scattered) const override
   {

@@ -6,7 +6,6 @@
 #include <numbers>
 #include <ostream>
 #include <random>
-#include <sstream>
 #include <vector>
 
 [[nodiscard]] inline double RandomDouble()
@@ -222,38 +221,20 @@ constexpr inline double linear_to_gamma(double linear_component)
   return 0;
 }
 
-constexpr inline void write_color(std::ostream& out, const Colour& pixel_colour)
+[[nodiscard]] inline void StreamPPM(std::ostream& stream, int width, int height, const std::vector<std::uint8_t>& data)
 {
-  const auto r = linear_to_gamma(pixel_colour.x);
-  const auto g = linear_to_gamma(pixel_colour.y);
-  const auto b = linear_to_gamma(pixel_colour.z);
-
-  // Translate the [0,1] component values to the byte range [0,255].
-  static constexpr Interval intensity(0.000, 0.999);
-  const auto rbyte = static_cast<std::uint8_t>(256 * intensity.Clamp(r));
-  const auto gbyte = static_cast<std::uint8_t>(256 * intensity.Clamp(g));
-  const auto bbyte = static_cast<std::uint8_t>(256 * intensity.Clamp(b));
-
-  // Write out the pixel color components.
-  out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
-}
-
-[[nodiscard]] inline std::string to_ppm(int width, int height, const std::vector<Colour>& data)
-{
-  std::stringstream stream;
   stream << "P3\n"
          << width << ' ' << height << "\n255\n";
-  for (const Colour& colour : data) {
-    write_color(stream, colour);
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      const auto rl_pixel_start = static_cast<std::size_t>(((y * width) + x) * 4);
+      // Write out the pixel color components.
+      stream << ' ' << data[rl_pixel_start] << ' ' << data[rl_pixel_start + 1] << ' ' << data[rl_pixel_start + 2] << '\n';
+    }
   }
-  return stream.str();
 }
 
-inline void output_ppm(int width, int height, const std::vector<Colour>& data)
+inline void PrintPPM(int width, int height, const std::vector<std::uint8_t>& data)
 {
-  std::cout << "P3\n"
-            << width << ' ' << height << "\n255\n";
-  for (const Colour& colour : data) {
-    write_color(std::cout, colour);
-  }
+  StreamPPM(std::cout, width, height, data);
 }

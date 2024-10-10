@@ -5,6 +5,7 @@
 #include "raylib.h"
 #include "raytracer.hpp"
 #include "shapes.hpp"
+#include "utility.hpp"
 #include <raylib-cpp.hpp>
 
 #include <cmath>
@@ -17,8 +18,8 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr auto screenWidth = 400;
-constexpr auto screenHeight = 300;
+constexpr auto screenWidth = 800;
+constexpr auto screenHeight = 600;
 
 class Renderer {
   RayTracer raytracer;
@@ -44,7 +45,7 @@ class Renderer {
 
   Renderer(int width, int height) : Width(width), Height(height)
   {
-    InitWindow(screenWidth, screenHeight, "Hello, Raylib");
+    InitWindow(screenWidth, screenHeight, "Softrays");
     SetTargetFPS(60);
     SetupViewport(width, height);
   }
@@ -80,7 +81,8 @@ class Renderer {
     // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom) (our raytracer takes care of that already)
     // target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(target->height)}, {0, 0}, WHITE);
 
-    raylib::DrawText(TextFormat("%3.3f fps @ %3.4f seconds %1d spp", fps, time, raytracer.GetSamplesPerPixel()), 10, 10, 30, raylib::Color::Green());  // NOLINT
+    // raylib::DrawText(TextFormat("%3.3f fps @ %3.4f seconds %1d spp", fps, time, raytracer.GetSamplesPerPixel()), 10, 10, 30, raylib::Color::Green());  // NOLINT
+    std::cout << fps << "fps | " << time << " Seconds @ " << raytracer.GetSamplesPerPixel() << std::endl;
 
     EndDrawing();
   }
@@ -89,25 +91,50 @@ class Renderer {
   {
     auto& world = raytracer.GetWorld();
 
-    auto material_ground = std::make_shared<lambertian>(Colour{0.8, 0.8, 0.0});  // NOLINT
-    auto material_center = std::make_shared<lambertian>(Colour{0.1, 0.2, 0.5});  // NOLINT
-    auto material_left = std::make_shared<dialectric>(1.50);  // NOLINT
-    auto material_bubble = std::make_shared<dialectric>(1.0 / 1.50);  // NOLINT
-    auto material_right = std::make_shared<metal>(Colour{0.8, 0.6, 0.2}, 1.0);  // NOLINT
+    auto ground_material = std::make_shared<lambertian>(Colour{0.5, 0.5, 0.5});  // NOLINT
+    world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
-    world.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));  // NOLINT
-    world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, material_center));  // NOLINT
-    world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));  // NOLINT
-    world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.4, material_bubble));  // NOLINT
-    world.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));  // NOLINT
+    for (int a = -11; a < 11; a++) {
+      for (int b = -11; b < 11; b++) {
+        auto choose_mat = RandomDouble();
+        Point3 center(a + 0.9 * RandomDouble(), 0.2, b + 0.9 * RandomDouble());
+        if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
+          if (choose_mat < 0.8) {
+            // diffuse
+            auto albedo = Colour::Random() * Colour::Random();
+            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<lambertian>(albedo)));
+          } else if (choose_mat < 0.95) {
+            // metal
+            auto albedo = Colour::Random(0.5, 1);
+            auto fuzz = RandomDouble(0, 0.5);
+            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<metal>(albedo, fuzz)));
+          } else {
+            // glass
+            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<dielectric>(1.5)));
+          }
+        }
+      }
+    }
 
-    raytracer.lookfrom = Point3(-2, 2, 1);
-    raytracer.lookat = Point3(0, 0, -1);
-    raytracer.vup = Vec3(0, 1, 0);
+    auto material1 = std::make_shared<dielectric>(1.5);
+    world.Add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
+
+    auto material2 = std::make_shared<lambertian>(Colour(0.4, 0.2, 0.1));
+    world.Add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+
+    auto material3 = std::make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
+    world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
+    raytracer.SetSamplesPerPixel(500);
+    raytracer.MaxDepth = 50;
+
     raytracer.vfov = 20;
+    raytracer.lookfrom = Point3(13, 2, 3);
+    raytracer.lookat = Point3(0, 0, 0);
+    raytracer.vup = Vec3(0, 1, 0);
 
-    raytracer.defocus_angle = 10;
-    raytracer.focus_dist = 3.4;
+    raytracer.defocus_angle = 0.6;
+    raytracer.focus_dist = 10.0;
 
 #if defined(PLATFORM_WEB)
     double cssW = 0;
