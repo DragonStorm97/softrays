@@ -134,6 +134,13 @@ struct Vec3 {
   {
     return *this - normal * dot(normal) * 2;
   }
+  [[nodiscard]] constexpr inline Vec3 Refract(const Vec3& normal, double etai_over_etat) const noexcept
+  {
+    auto cos_theta = std::fmin((-*this).dot(normal), 1.0);
+    Vec3 r_out_perp = (*this + normal * cos_theta) * etai_over_etat;
+    Vec3 r_out_parallel = normal * (-std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())));
+    return r_out_perp + r_out_parallel;
+  }
 };
 
 [[nodiscard]] inline Vec3 RandomOnHemisphere(const Vec3& normal) noexcept

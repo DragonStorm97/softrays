@@ -91,12 +91,14 @@ class Renderer {
 
     auto material_ground = std::make_shared<lambertian>(Colour{0.8, 0.8, 0.0});  // NOLINT
     auto material_center = std::make_shared<lambertian>(Colour{0.1, 0.2, 0.5});  // NOLINT
-    auto material_left = std::make_shared<metal>(Colour{0.8, 0.8, 0.8}, 0.3);  // NOLINT
+    auto material_left = std::make_shared<dialectric>(1.50);  // NOLINT
+    auto material_bubble = std::make_shared<dialectric>(1.0 / 1.50);  // NOLINT
     auto material_right = std::make_shared<metal>(Colour{0.8, 0.6, 0.2}, 1.0);  // NOLINT
 
     world.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));  // NOLINT
     world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, material_center));  // NOLINT
     world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));  // NOLINT
+    world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.4, material_bubble));  // NOLINT
     world.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));  // NOLINT
 
 #if defined(PLATFORM_WEB)
