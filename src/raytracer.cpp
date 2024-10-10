@@ -25,21 +25,31 @@ RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, 
 
 void RayTracer::Render()
 {
-  const auto focal_length = 1.0;
-  const auto viewport_height = 2.0;  // NOLINT
+  CameraPosition = lookfrom;
+
+  const auto focal_length = (lookfrom - lookat).length();
+
+  const auto theta = DegreesToRadians(vfov);
+  const auto h = std::tan(theta / 2);
+  const auto viewport_height = 2 * h * focal_length;
   const auto viewport_width = viewport_height * (static_cast<double>(width) / height);
 
+  // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+  w = (lookfrom - lookat).unit_vector();
+  u = vup.cross(w).unit_vector();
+  v = w.cross(u);
+
   // Calculate the vectors across the horizontal and down the vertical viewport edges.
-  const auto viewport_u = Vec3(viewport_width, 0, 0);
-  const auto viewport_v = Vec3(0, -viewport_height, 0);
+
+  const Vec3 viewport_u = u * viewport_width;  // Vector across viewport horizontal edge
+  const Vec3 viewport_v = (-v) * viewport_height;  // Vector down viewport vertical edge
 
   // Calculate the horizontal and vertical delta vectors from pixel to pixel.
   const auto pixel_delta_u = viewport_u / width;
   const auto pixel_delta_v = viewport_v / height;
 
   // Calculate the location of the upper left pixel.
-  const auto viewport_upper_left = CameraPosition
-      - Vec3(0, 0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+  const auto viewport_upper_left = CameraPosition - (w * focal_length) - (viewport_u / 2) - (viewport_v / 2);
   const auto pixel00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) * 0.5);
 
   for (int y = 0; y < height; ++y) {

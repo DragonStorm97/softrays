@@ -95,12 +95,18 @@ public:
   Point3 CameraPosition{0, 0, 0};
 
   int MaxDepth = 50;  // NOLINT
+  double vfov = 90;  // Vertical view angle (field of view)
+
+  Point3 lookfrom = Point3(0, 0, 0);  // Point camera is looking from
+  Point3 lookat = Point3(0, 0, -1);  // Point camera is looking at
+  Vec3 vup = Vec3(0, 1, 0);  // Camera-relative "up" direction
 
   private:
-  int width = 600;  // NOLINT
-  int height = 400;  // NOLINT
+  int width = 600;  // NOLINT // Rendered Image Width
+  int height = 400;  // NOLINT // Rendered Image Height
   int SamplesPerPixel = 100;  // NOLINT  // Count of random samples for each pixel
-  double PixelSamplesScale = 1.0 / SamplesPerPixel;
+  double PixelSamplesScale = 1.0 / SamplesPerPixel;  // Color scale factor for a sum of pixel samples
+  Vec3 u, v, w;  // Camera frame basis vectors
 
   HittableList World;
   std::vector<std::uint8_t> rlPixels;

@@ -101,6 +101,11 @@ class Renderer {
     world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.4, material_bubble));  // NOLINT
     world.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));  // NOLINT
 
+    raytracer.lookfrom = Point3(-2, 2, 1);
+    raytracer.lookat = Point3(0, 0, -1);
+    raytracer.vup = Vec3(0, 1, 0);
+    raytracer.vfov = 20;
+
 #if defined(PLATFORM_WEB)
     double cssW = 0;
     double cssH = 0;
