@@ -82,7 +82,7 @@ class Renderer {
     // target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(target->height)}, {0, 0}, WHITE);
 
     // raylib::DrawText(TextFormat("%3.3f fps @ %3.4f seconds %1d spp", fps, time, raytracer.GetSamplesPerPixel()), 10, 10, 30, raylib::Color::Green());  // NOLINT
-    std::cout << fps << "fps | " << time << " Seconds @ " << raytracer.GetSamplesPerPixel() << std::endl;
+    std::cout << fps << "fps | " << time << " Seconds @ " << raytracer.GetSamplesPerPixel() << '\n';
 
     EndDrawing();
   }
@@ -91,38 +91,39 @@ class Renderer {
   {
     auto& world = raytracer.GetWorld();
 
-    auto ground_material = std::make_shared<lambertian>(Colour{0.5, 0.5, 0.5});  // NOLINT
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+    auto ground_material = std::make_shared<Lambertian>(Colour{0.5, 0.5, 0.5});  // NOLINT
     world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {
       for (int b = -11; b < 11; b++) {
         auto choose_mat = RandomDouble();
-        Point3 center(a + 0.9 * RandomDouble(), 0.2, b + 0.9 * RandomDouble());
+        Point3 center(a + (0.9 * RandomDouble()), 0.2, b + (0.9 * RandomDouble()));
         if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
           if (choose_mat < 0.8) {
             // diffuse
             auto albedo = Colour::Random() * Colour::Random();
-            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<lambertian>(albedo)));
+            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<Lambertian>(albedo)));
           } else if (choose_mat < 0.95) {
             // metal
             auto albedo = Colour::Random(0.5, 1);
             auto fuzz = RandomDouble(0, 0.5);
-            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<metal>(albedo, fuzz)));
+            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<Metal>(albedo, fuzz)));
           } else {
             // glass
-            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<dielectric>(1.5)));
+            world.Add(std::make_shared<Sphere>(center, 0.2, std::make_shared<Dielectric>(1.5)));
           }
         }
       }
     }
 
-    auto material1 = std::make_shared<dielectric>(1.5);
+    auto material1 = std::make_shared<Dielectric>(1.5);
     world.Add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
 
-    auto material2 = std::make_shared<lambertian>(Colour(0.4, 0.2, 0.1));
+    auto material2 = std::make_shared<Lambertian>(Colour(0.4, 0.2, 0.1));
     world.Add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
 
-    auto material3 = std::make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
+    auto material3 = std::make_shared<Metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
 #if defined(PLATFORM_WEB)
@@ -139,6 +140,7 @@ class Renderer {
 
     raytracer.defocus_angle = 0.6;
     raytracer.focus_dist = 10.0;
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
 #if defined(PLATFORM_WEB)
     double cssW = 0;

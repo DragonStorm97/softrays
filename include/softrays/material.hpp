@@ -3,9 +3,9 @@
 #include "math.hpp"
 #include <raytracer.hpp>
 
-class lambertian : public RayTracer::Material {
+class Lambertian : public RayTracer::Material {
   public:
-  lambertian(const Colour& albedo) : Albedo(albedo) { }
+  Lambertian(const Colour& albedo) : Albedo(albedo) { }
   [[nodiscard]] bool Scatter([[maybe_unused]] const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
       Colour& attenuation, RayTracer::Ray& scattered) const override
   {
@@ -22,9 +22,9 @@ class lambertian : public RayTracer::Material {
   Colour Albedo{};
 };
 
-class metal : public RayTracer::Material {
+class Metal : public RayTracer::Material {
   public:
-  metal(const Colour& albedo, double fuzz) : Albedo(albedo), Fuzz(fuzz < 1 ? fuzz : 1) { }
+  Metal(const Colour& albedo, double fuzz) : Albedo(albedo), Fuzz(fuzz < 1 ? fuzz : 1) { }
   [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
       Colour& attenuation, RayTracer::Ray& scattered) const override
   {
@@ -39,9 +39,9 @@ class metal : public RayTracer::Material {
   double Fuzz{};
 };
 
-class dielectric : public RayTracer::Material {
+class Dielectric : public RayTracer::Material {
   public:
-  dielectric(double refraction_index) noexcept : RefractionIndex(refraction_index) { }
+  Dielectric(double refraction_index) noexcept : RefractionIndex(refraction_index) { }
   [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
       Colour& attenuation, RayTracer::Ray& scattered) const override
   {
