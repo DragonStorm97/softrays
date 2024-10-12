@@ -1,13 +1,23 @@
-#include <cstddef>
-#include <softrays.hpp>
-
 #include "material.hpp"
 #include "raytracer.hpp"
 #include "shapes.hpp"
+#include "utility.hpp"
+
+#include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <raylib-cpp.hpp>
 
-#include <cmath>
+using softrays::Colour;
+using softrays::Dielectric;
+using softrays::Dimension2d;
+using softrays::Lambertian;
+using softrays::Metal;
+using softrays::Point3;
+using softrays::RayTracer;
+using softrays::Sphere;
+using softrays::Vec3;
+
 #if defined(PLATFORM_WEB)
 #include <emscripten.h>
 #include <emscripten/html5.h>
@@ -17,38 +27,36 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr auto screenWidth = 800;
-constexpr auto screenHeight = 600;
+constexpr Dimension2d screen{.Width = 800, .Height = 600};
 constexpr auto maxFps = 60;
 
 class Renderer {
   RayTracer raytracer;
 
   public:
-  int Width = screenWidth;
-  int Height = screenHeight;
   raylib::Image baseImage;
   raylib::Texture RenderTarget;
 
-  void SetupViewport(int width, int height)
+  Dimension2d ScreenDim{screen};
+
+  void SetupViewport(const Dimension2d& dim)
   {
-    raytracer.ResizeViewport({.Width = width, .Height = height});
-    Width = width;
-    Height = height;
+    raytracer.ResizeViewport(dim);
     baseImage.Unload();
     RenderTarget.Unload();
-    baseImage = GenImageColor(width, height, raylib::Color::Black());
+    baseImage = GenImageColor(dim.Width, dim.Height, raylib::Color::Black());
     // TODO: resize our texture as well (not really working at the moment, at some point we get a log "D3D12: Removing Device.", which is bad)
     baseImage.Format(PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     RenderTarget = LoadTextureFromImage(baseImage);
   }
 
-  Renderer(int width, int height) : Width(width), Height(height)
+  Renderer(const Dimension2d& dim) : ScreenDim(dim)
   {
-    InitWindow(screenWidth, screenHeight, "Softrays");
+    InitWindow(ScreenDim.Width, ScreenDim.Height, "Softrays");
     SetTargetFPS(maxFps);
-    SetupViewport(width, height);
+    SetupViewport(ScreenDim);
   }
+
   void UpdateDrawFrame()
   {
     const auto time = static_cast<double>(GetFrameTime());
@@ -68,7 +76,7 @@ class Renderer {
 
     if (static_cast<std::size_t>(windowHeight) * static_cast<std::size_t>(windowWidth) != raytracer.GetPixelData().size()) {
       std::cout << "resizing viewport (" << windowWidth << "x" << windowHeight << ")" << raytracer.GetPixelData().size() << "\n";
-      SetupViewport(windowWidth, windowHeight);
+      SetupViewport({.Width = windowWidth, .Height = windowHeight});
     }
 
     BeginDrawing();
@@ -90,6 +98,8 @@ class Renderer {
   void Start()
   {
     auto& world = raytracer.GetWorld();
+
+    // Create the Scene:
 
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
     auto ground_material = std::make_shared<Lambertian>(Colour{0.5, 0.5, 0.5});  // NOLINT
@@ -126,6 +136,7 @@ class Renderer {
     auto material3 = std::make_shared<Metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
+    // Have use lower quality settings for web builds
 #if defined(PLATFORM_WEB)
     raytracer.SetSamplesPerPixel(5);
     raytracer.MaxDepth = 10;
@@ -133,13 +144,13 @@ class Renderer {
     raytracer.SetSamplesPerPixel(10);
     raytracer.MaxDepth = 5;
 #endif
-    raytracer.vfov = 20;
-    raytracer.lookfrom = Point3(13, 2, 3);
-    raytracer.lookat = Point3(0, 0, 0);
-    raytracer.vup = Vec3(0, 1, 0);
+    raytracer.FieldOfView = 20;
+    raytracer.LookFrom = Point3(13, 2, 3);
+    raytracer.LookAt = Point3(0, 0, 0);
+    raytracer.CameraUp = Vec3(0, 1, 0);
 
-    raytracer.defocus_angle = 0.6;
-    raytracer.focus_dist = 10.0;
+    raytracer.DefocusAngle = 0.6;
+    raytracer.FocusDistance = 10.0;
     // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
 #if defined(PLATFORM_WEB)
@@ -175,7 +186,7 @@ class Renderer {
 
 int main()
 {
-  Renderer renderer(screenWidth, screenHeight);
+  Renderer renderer(screen);
   renderer.Start();
 }
 

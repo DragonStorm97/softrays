@@ -1,16 +1,19 @@
+#include "raytracer.hpp"
+#include "material.hpp"  //NOLINT(unused-includes) for implementation of MaterialBase
 #include "math.hpp"
 #include "utility.hpp"
 #include <cstddef>
-#include <raytracer.hpp>
+
+using namespace softrays;
 
 Point3 RayTracer::DefocusDiskSample() const noexcept
 {
   // Returns a random point in the camera defocus disk.
   const auto rand = Vec3::RandomInUnitDisk();
-  return CameraPosition + (defocus_disk_u * rand.x) + (defocus_disk_v * rand.y);
+  return CameraPosition + (DefocusDisk_u * rand.x) + (DefocusDisk_v * rand.y);
 }
 
-RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const
+Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const
 {
   // Construct a camera ray originating from the defocus disk and directed at a randomly
   // point around the pixel location x, y.
@@ -20,43 +23,49 @@ RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, 
       + (pixel_delta_u * (x + offset.x))
       + (pixel_delta_v * (y + offset.y));
 
-  const auto ray_origin = (defocus_angle <= 0) ? CameraPosition : DefocusDiskSample();
+  const auto ray_origin = (DefocusAngle <= 0) ? CameraPosition : DefocusDiskSample();
   const auto ray_direction = pixel_sample - ray_origin;
 
   return Ray{.Origin = ray_origin, .Direction = ray_direction};
 }
 
-void RayTracer::Render()
+void RayTracer::SetupCamera()
 {
-  CameraPosition = lookfrom;
-
-  const auto theta = DegreesToRadians(vfov);
-  const auto hyp = std::tan(theta / 2);
-  const auto viewport_height = 2 * hyp * focus_dist;
-  const auto viewport_width = viewport_height * (static_cast<double>(ViewportDimensions.Width) / ViewportDimensions.Height);
+  CameraPosition = LookFrom;
 
   // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
-  w = (lookfrom - lookat).unit_vector();
-  u = vup.cross(w).unit_vector();
-  v = w.cross(u);
+  Camera_w = (LookFrom - LookAt).unit_vector();
+  Camera_u = CameraUp.cross(Camera_w).unit_vector();
+  Camera_v = Camera_w.cross(Camera_u);
+}
+
+void RayTracer::Render()
+{
+  SetupCamera();
+
+  const auto theta = DegreesToRadians(FieldOfView);
+  const auto hyp = std::tan(theta / 2);
+  const auto viewport_height = 2 * hyp * FocusDistance;
+  const auto viewport_width = viewport_height * (static_cast<double>(ViewportDimensions.Width) / ViewportDimensions.Height);
 
   // Calculate the vectors across the horizontal and down the vertical viewport edges.
 
-  const Vec3 viewport_u = u * viewport_width;  // Vector across viewport horizontal edge
-  const Vec3 viewport_v = (-v) * viewport_height;  // Vector down viewport vertical edge
+  const Vec3 viewport_u = Camera_u * viewport_width;  // Vector across viewport horizontal edge
+  const Vec3 viewport_v = (-Camera_v) * viewport_height;  // Vector down viewport vertical edge
 
   // Calculate the horizontal and vertical delta vectors from pixel to pixel.
   const auto pixel_delta_u = viewport_u / ViewportDimensions.Width;
   const auto pixel_delta_v = viewport_v / ViewportDimensions.Height;
 
   // Calculate the location of the upper left pixel.
-  const auto viewport_upper_left = CameraPosition - (w * focus_dist) - (viewport_u / 2) - (viewport_v / 2);
+  const auto viewport_upper_left = CameraPosition - (Camera_w * FocusDistance) - (viewport_u / 2) - (viewport_v / 2);
   const auto pixel00_loc = viewport_upper_left + ((pixel_delta_u + pixel_delta_v) * 0.5);
 
   // Calculate the camera defocus disk basis vectors.
-  const auto defocus_radius = focus_dist * std::tan(DegreesToRadians(defocus_angle / 2));
-  defocus_disk_u = u * defocus_radius;
-  defocus_disk_v = v * defocus_radius;
+  const auto defocus_radius = FocusDistance * std::tan(DegreesToRadians(DefocusAngle / 2));
+
+  DefocusDisk_u = Camera_u * defocus_radius;
+  DefocusDisk_v = Camera_v * defocus_radius;
 
   for (int y = 0; y < ViewportDimensions.Height; ++y) {
     for (int x = 0; x < ViewportDimensions.Width; ++x) {
@@ -74,7 +83,7 @@ void RayTracer::Render()
       }
 
       const auto pixel_start = static_cast<std::size_t>(y * ViewportDimensions.Width) + static_cast<std::size_t>(x);
-      pixels[pixel_start] = pixel_colour * PixelSamplesScale;
+      PixelData[pixel_start] = pixel_colour * PixelSamplesScale;
     }
   }
 }
@@ -107,8 +116,8 @@ Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) co
 void RayTracer::ResizeViewport(const Dimension2d& dim)
 {
   ViewportDimensions = dim;
-  pixels.clear();
-  pixels.resize(static_cast<std::size_t>(ViewportDimensions.Width) * static_cast<std::size_t>(ViewportDimensions.Height), {0.0, 0.0, 0.0});
+  PixelData.clear();
+  PixelData.resize(static_cast<std::size_t>(ViewportDimensions.Width) * static_cast<std::size_t>(ViewportDimensions.Height), {0.0, 0.0, 0.0});
   rlPixels.clear();
   rlPixels.resize(static_cast<std::size_t>(ViewportDimensions.Width) * static_cast<std::size_t>(ViewportDimensions.Height) * 4UL, 0);
 }
@@ -127,9 +136,9 @@ const std::vector<std::uint8_t>& RayTracer::GetRGBAData()
       // const auto g = (pixels[pixel_start].y);
       // const auto b = (pixels[pixel_start].z);
 
-      const auto r = LinearToGamma(pixels[pixel_start].x);
-      const auto g = LinearToGamma(pixels[pixel_start].y);
-      const auto b = LinearToGamma(pixels[pixel_start].z);
+      const auto r = LinearToGamma(PixelData[pixel_start].x);
+      const auto g = LinearToGamma(PixelData[pixel_start].y);
+      const auto b = LinearToGamma(PixelData[pixel_start].z);
 
       rlPixels[rl_pixel_start] = static_cast<std::uint8_t>(intensity.Clamp(r) * byteMax);
       rlPixels[rl_pixel_start + 1] = static_cast<std::uint8_t>(intensity.Clamp(g) * byteMax);

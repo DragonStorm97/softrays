@@ -1,22 +1,25 @@
 #pragma once
 
-#include "raytracer.hpp"
+#include "material.hpp"
+#include "utility.hpp"
+
 #include <memory>
 #include <utility>
 
-class Sphere : public RayTracer::Hittable {
+namespace softrays {
+class Sphere : public Hittable {
   private:
   Point3 Center;
   double Radius;
-  std::shared_ptr<RayTracer::Material> Material;
+  std::shared_ptr<MaterialBase> Material;
 
   public:
-  Sphere(const Point3& center, double radius, std::shared_ptr<RayTracer::Material>&& mat) noexcept
+  Sphere(const Point3& center, double radius, std::shared_ptr<MaterialBase>&& mat) noexcept
       : Center(center), Radius(std::fmax(0, radius)), Material(std::move(mat))
   {
   }
 
-  [[nodiscard]] bool Hit(const RayTracer::Ray& ray, Interval ray_time, RayTracer::HitData& hit) const override
+  [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
   {
     const Vec3 o_c = Center - ray.Origin;
     const auto a = ray.Direction.length_squared();
@@ -46,3 +49,4 @@ class Sphere : public RayTracer::Hittable {
     return true;
   }
 };
+}

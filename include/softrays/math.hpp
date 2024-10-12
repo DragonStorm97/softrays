@@ -7,6 +7,7 @@
 #include <numbers>
 #include <ostream>
 
+namespace softrays {
 struct Vec3 {
   double x = 0.0;
   double y = 0.0;
@@ -212,3 +213,15 @@ struct Interval {
 
 inline const Interval Interval::Empty = Interval{};
 inline const Interval Interval::Universe = Interval{.Min = -Infinity, .Max = Infinity};
+
+struct Ray {
+  Point3 Origin;
+  Vec3 Direction;
+
+  [[nodiscard]] Point3 at(double val) const noexcept
+  {
+    return Origin + (Direction * val);
+  }
+};
+
+};

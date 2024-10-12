@@ -1,13 +1,28 @@
 #pragma once
 
 #include "math.hpp"
-#include <raytracer.hpp>
+#include "utility.hpp"
 
-class Lambertian : public RayTracer::Material {
+namespace softrays {
+struct MaterialBase {
+  MaterialBase() = default;
+  MaterialBase(const MaterialBase&) = default;
+  MaterialBase(MaterialBase&&) = delete;
+  MaterialBase& operator=(const MaterialBase&) = default;
+  MaterialBase& operator=(MaterialBase&&) = delete;
+
+  virtual ~MaterialBase() = default;
+  [[nodiscard]] virtual bool Scatter([[maybe_unused]] const Ray& ray, [[maybe_unused]] const HitData& hit, [[maybe_unused]] Colour& attenuation, [[maybe_unused]] Ray& scattered) const
+  {
+    return false;
+  }
+};
+
+class Lambertian : public MaterialBase {
   public:
   Lambertian(const Colour& albedo) : Albedo(albedo) { }
-  [[nodiscard]] bool Scatter([[maybe_unused]] const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
-      Colour& attenuation, RayTracer::Ray& scattered) const override
+  [[nodiscard]] bool Scatter([[maybe_unused]] const Ray& r_in, const HitData& hit,
+      Colour& attenuation, Ray& scattered) const override
   {
     auto scatter_direction = hit.Normal + Vec3::RandomUnitVector();
 
@@ -22,11 +37,11 @@ class Lambertian : public RayTracer::Material {
   Colour Albedo{};
 };
 
-class Metal : public RayTracer::Material {
+class Metal : public MaterialBase {
   public:
   Metal(const Colour& albedo, double fuzz) : Albedo(albedo), Fuzz(fuzz < 1 ? fuzz : 1) { }
-  [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
-      Colour& attenuation, RayTracer::Ray& scattered) const override
+  [[nodiscard]] bool Scatter(const Ray& r_in, const HitData& hit,
+      Colour& attenuation, Ray& scattered) const override
   {
     Vec3 reflected = r_in.Direction.Reflect(hit.Normal);
     reflected = reflected.unit_vector() + (Vec3::RandomUnitVector() * Fuzz);
@@ -39,11 +54,11 @@ class Metal : public RayTracer::Material {
   double Fuzz{};
 };
 
-class Dielectric : public RayTracer::Material {
+class Dielectric : public MaterialBase {
   public:
   Dielectric(double refraction_index) noexcept : RefractionIndex(refraction_index) { }
-  [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
-      Colour& attenuation, RayTracer::Ray& scattered) const override
+  [[nodiscard]] bool Scatter(const Ray& r_in, const HitData& hit,
+      Colour& attenuation, Ray& scattered) const override
   {
     attenuation = {.x = 1.0, .y = 1.0, .z = 1.0};
     double ri = hit.FrontFace ? (1.0 / RefractionIndex) : RefractionIndex;
@@ -55,7 +70,7 @@ class Dielectric : public RayTracer::Material {
     bool cannot_refract = ri * sin_theta > 1.0;
     Vec3 direction = (cannot_refract || Reflectance(cos_theta, RefractionIndex) > RandomDouble()) ? unit_direction.Reflect(hit.Normal) : unit_direction.Refract(hit.Normal, ri);
 
-    scattered = RayTracer::Ray(hit.Location, direction);
+    scattered = {.Origin = hit.Location, .Direction = direction};
 
     return true;
   }
@@ -64,7 +79,7 @@ class Dielectric : public RayTracer::Material {
   // the refractive index of the enclosing media
   double RefractionIndex;
 
-  static double Reflectance(double cosine, double refraction_index)
+  constexpr static double Reflectance(double cosine, double refraction_index) noexcept
   {
     // Use Schlick's approximation for reflectance.
     auto r0 = (1 - refraction_index) / (1 + refraction_index);
@@ -73,3 +88,4 @@ class Dielectric : public RayTracer::Material {
     return r0 + ((1 - r0) * std::pow((1 - cosine), 5));
   }
 };
+}
