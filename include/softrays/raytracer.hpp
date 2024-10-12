@@ -72,7 +72,7 @@ public:
     void Clear() { Objects.clear(); }
     void Add(std::shared_ptr<Hittable>&& object)
     {
-      Objects.push_back(object);
+      Objects.push_back(std::move(object));
     }
 
     [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
@@ -82,7 +82,7 @@ public:
       double closest_so_far = ray_time.Max;
 
       for (const auto& object : Objects) {
-        if (object->Hit(ray, {ray_time.Min, closest_so_far}, temp_hit)) {
+        if (object->Hit(ray, {.Min = ray_time.Min, .Max = closest_so_far}, temp_hit)) {
           closest_so_far = temp_hit.Time;
           hit_anything = true;
           hit = temp_hit;

@@ -6,7 +6,7 @@
 class lambertian : public RayTracer::Material {
   public:
   lambertian(const Colour& albedo) : albedo(albedo) { }
-  [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
+  [[nodiscard]] bool Scatter([[maybe_unused]] const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
       Colour& attenuation, RayTracer::Ray& scattered) const override
   {
     auto scatter_direction = hit.Normal + Vec3::RandomUnitVector();
@@ -14,7 +14,7 @@ class lambertian : public RayTracer::Material {
     // Catch degenerate scatter direction
     if (scatter_direction.near_zero())
       scatter_direction = hit.Normal;
-    scattered = {hit.Location, scatter_direction};
+    scattered = {.Origin = hit.Location, .Direction = scatter_direction};
     attenuation = albedo;
     return true;
   }
@@ -30,7 +30,7 @@ class metal : public RayTracer::Material {
   {
     Vec3 reflected = r_in.Direction.Reflect(hit.Normal);
     reflected = reflected.unit_vector() + (Vec3::RandomUnitVector() * fuzz);
-    scattered = {hit.Location, reflected};
+    scattered = {.Origin = hit.Location, .Direction = reflected};
     attenuation = albedo;
     return scattered.Direction.dot(hit.Normal) > 0;
   }
@@ -45,7 +45,7 @@ class dielectric : public RayTracer::Material {
   [[nodiscard]] bool Scatter(const RayTracer::Ray& r_in, const RayTracer::HitData& hit,
       Colour& attenuation, RayTracer::Ray& scattered) const override
   {
-    attenuation = {1.0, 1.0, 1.0};
+    attenuation = {.x = 1.0, .y = 1.0, .z = 1.0};
     double ri = hit.FrontFace ? (1.0 / refraction_index) : refraction_index;
 
     Vec3 unit_direction = r_in.Direction.unit_vector();

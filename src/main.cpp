@@ -2,7 +2,6 @@
 #include <softrays.hpp>
 
 #include "material.hpp"
-#include "raylib.h"
 #include "raytracer.hpp"
 #include "shapes.hpp"
 #include "utility.hpp"
@@ -20,6 +19,7 @@ void RenderLoopCallback(void* arg);
 
 constexpr auto screenWidth = 800;
 constexpr auto screenHeight = 600;
+constexpr auto maxFps = 60;
 
 class Renderer {
   RayTracer raytracer;
@@ -46,7 +46,7 @@ class Renderer {
   Renderer(int width, int height) : Width(width), Height(height)
   {
     InitWindow(screenWidth, screenHeight, "Softrays");
-    SetTargetFPS(60);
+    SetTargetFPS(maxFps);
     SetupViewport(width, height);
   }
   void UpdateDrawFrame()
@@ -124,6 +124,7 @@ class Renderer {
 
     auto material3 = std::make_shared<metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
 #if defined(PLATFORM_WEB)
     raytracer.SetSamplesPerPixel(5);
     raytracer.MaxDepth = 10;
@@ -145,7 +146,7 @@ class Renderer {
     emscripten_get_element_css_size("#canvas", &cssW, &cssH);
     SetWindowSize(static_cast<int>(cssW), static_cast<int>(cssH));
     std::cout << "window(" << GetScreenWidth() << "x" << GetScreenHeight() << ")" << std::endl;
-    emscripten_set_main_loop_arg(&RenderLoopCallback, this, 60, 1);
+    emscripten_set_main_loop_arg(&RenderLoopCallback, this, maxFps, 1);
 #else
     bool should_quit = false;
     while (!should_quit) {

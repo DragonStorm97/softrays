@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <raytracer.hpp>
 #include <utility>
 
@@ -19,9 +20,9 @@ class Sphere : public RayTracer::Hittable {
   {
     const Vec3 o_c = Center - ray.Origin;
     const auto a = ray.Direction.length_squared();
-    const auto h = ray.Direction.dot(o_c);
-    const auto c = o_c.length_squared() - (Radius * Radius);
-    const auto discriminant = (h * h) - (a * c);
+    const auto hyp = ray.Direction.dot(o_c);
+    const auto c_comp = o_c.length_squared() - (Radius * Radius);
+    const auto discriminant = (hyp * hyp) - (a * c_comp);
 
     if (discriminant < 0) {
       return false;
@@ -30,9 +31,9 @@ class Sphere : public RayTracer::Hittable {
     const auto sqrtd = std::sqrt(discriminant);
 
     // Find the nearest root that lies in the acceptable range.
-    auto root = (h - sqrtd) / a;
+    auto root = (hyp - sqrtd) / a;
     if (!ray_time.Surrounds(root)) {
-      root = (h + sqrtd) / a;
+      root = (hyp + sqrtd) / a;
       if (!ray_time.Surrounds(root))
         return false;
     }

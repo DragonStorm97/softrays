@@ -20,7 +20,7 @@
 [[nodiscard]] inline double RandomDouble(double min, double max)
 {
   // Returns a random real in [min,max).
-  return min + (max - min) * RandomDouble();
+  return min + ((max - min) * RandomDouble());
 }
 
 struct Vec3 {
@@ -30,7 +30,7 @@ struct Vec3 {
 
   [[nodiscard]] constexpr Vec3 operator-() const noexcept
   {
-    return {-x, -y, -z};
+    return {.x = -x, .y = -y, .z = -z};
   }
   constexpr void operator+=(const Vec3& other) noexcept
   {
@@ -59,22 +59,22 @@ struct Vec3 {
 
   [[nodiscard]] constexpr Vec3 operator+(const Vec3& vec) const noexcept
   {
-    return {x + vec.x, y + vec.y, z + vec.z};
+    return {.x = x + vec.x, .y = y + vec.y, .z = z + vec.z};
   }
 
   [[nodiscard]] constexpr Vec3 operator-(const Vec3& vec) const noexcept
   {
-    return {x - vec.x, y - vec.y, z - vec.z};
+    return {.x = x - vec.x, .y = y - vec.y, .z = z - vec.z};
   }
 
   [[nodiscard]] constexpr Vec3 operator*(const Vec3& vec) const noexcept
   {
-    return {x * vec.x, y * vec.y, z * vec.z};
+    return {.x = x * vec.x, .y = y * vec.y, .z = z * vec.z};
   }
 
   [[nodiscard]] constexpr Vec3 operator*(double val) const noexcept
   {
-    return {val * x, val * y, val * z};
+    return {.x = val * x, .y = val * y, .z = val * z};
   }
 
   [[nodiscard]] constexpr Vec3 operator/(double val) const noexcept
@@ -84,16 +84,16 @@ struct Vec3 {
 
   [[nodiscard]] constexpr double dot(const Vec3& vec) const noexcept
   {
-    return x * vec.x
-        + y * vec.y
-        + z * vec.z;
+    return (x * vec.x)
+        + (y * vec.y)
+        + (z * vec.z);
   }
 
   [[nodiscard]] constexpr Vec3 cross(const Vec3& vec) const noexcept
   {
-    return {y * vec.z - z * vec.y,
-        z * vec.x - x * vec.z,
-        x * vec.y - y * vec.x};
+    return {.x = (y * vec.z) - (z * vec.y),
+        .y = (z * vec.x) - (x * vec.z),
+        .z = (x * vec.y) - (y * vec.x)};
   }
 
   [[nodiscard]] constexpr Vec3 unit_vector() const noexcept
@@ -101,40 +101,41 @@ struct Vec3 {
     return *this / length();
   }
 
-  [[nodiscard]] static inline Vec3 RandomUnitVector() noexcept
+  [[nodiscard]] static Vec3 RandomUnitVector() noexcept
   {
+    constexpr auto min_len = 1e-160;
     // NOTE: this was in the book, but surely we are better off getting a random vector and just normalising it???
     while (true) {
-      const auto p = Vec3::Random(-1.0, 1.0);
-      const auto lensq = p.length_squared();
-      if (1e-160 < lensq && lensq <= 1) {
-        return p / std::sqrt(lensq);
+      const auto rand = Vec3::Random(-1.0, 1.0);
+      const auto lensq = rand.length_squared();
+      if (min_len < lensq && lensq <= 1) {
+        return rand / std::sqrt(lensq);
       }
     }
     // NOTE: I tried this, but it did look different for some reason
     // return Vec3::Random().unit_vector();
   }
 
-  [[nodiscard]] inline static Vec3 Random()
+  [[nodiscard]] static Vec3 Random()
   {
     return Vec3(RandomDouble(), RandomDouble(), RandomDouble());
   }
 
-  [[nodiscard]] inline static Vec3 Random(double min, double max)
+  [[nodiscard]] static Vec3 Random(double min, double max)
   {
     return Vec3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
   }
   [[nodiscard]] constexpr bool near_zero() const noexcept
   {
     // Return true if the vector is close to zero in all dimensions.
-    auto s = 1e-8;
-    return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
+    constexpr auto near_zero = 1e-8;
+    return (std::fabs(x) < near_zero) && (std::fabs(y) < near_zero) && (std::fabs(z) < near_zero);
   }
-  [[nodiscard]] constexpr inline Vec3 Reflect(const Vec3& normal) const noexcept
+  [[nodiscard]] constexpr Vec3 Reflect(const Vec3& normal) const noexcept
   {
     return *this - normal * dot(normal) * 2;
   }
-  [[nodiscard]] constexpr inline Vec3 Refract(const Vec3& normal, double etai_over_etat) const noexcept
+  [[nodiscard]] constexpr Vec3 Refract(const Vec3& normal, double etai_over_etat) const noexcept
   {
     auto cos_theta = std::fmin((-*this).dot(normal), 1.0);
     Vec3 r_out_perp = (*this + normal * cos_theta) * etai_over_etat;
@@ -154,9 +155,9 @@ struct Vec3 {
 {
   // TODO: again, surely there's a better way than looping
   while (true) {
-    auto p = Vec3{RandomDouble(-1, 1), RandomDouble(-1, 1), 0};
-    if (p.length_squared() < 1)
-      return p;
+    const auto rand = Vec3{.x = RandomDouble(-1, 1), .y = RandomDouble(-1, 1), .z = 0};
+    if (rand.length_squared() < 1)
+      return rand;
   }
 }
 
@@ -212,9 +213,9 @@ struct Interval {
 };
 
 inline const Interval Interval::Empty = Interval{};
-inline const Interval Interval::Universe = Interval{-Infinity, Infinity};
+inline const Interval Interval::Universe = Interval{.Min = -Infinity, .Max = Infinity};
 
-constexpr inline double linear_to_gamma(double linear_component)
+constexpr double linear_to_gamma(double linear_component)
 {
   if (linear_component > 0)
     return std::sqrt(linear_component);
@@ -228,7 +229,7 @@ inline void StreamPPM(std::ostream& stream, int width, int height, const std::ve
          << width << ' ' << height << "\n255\n";
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      const auto rl_pixel_start = static_cast<std::size_t>(((y * width) + x) * 4);
+      const auto rl_pixel_start = static_cast<std::size_t>((y * width) + x) * 4;
       // Write out the pixel color components.
       stream << ' ' << data[rl_pixel_start] << ' ' << data[rl_pixel_start + 1] << ' ' << data[rl_pixel_start + 2] << '\n';
     }
