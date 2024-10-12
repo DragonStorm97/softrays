@@ -69,6 +69,7 @@ class Dielectric : public RayTracer::Material {
     // Use Schlick's approximation for reflectance.
     auto r0 = (1 - refraction_index) / (1 + refraction_index);
     r0 = r0 * r0;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
     return r0 + ((1 - r0) * std::pow((1 - cosine), 5));
   }
 };

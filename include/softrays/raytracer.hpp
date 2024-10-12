@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math.hpp"
+#include "utility.hpp"
 #include <cstdint>
 #include <memory>
 
@@ -63,7 +64,7 @@ public:
   };
 
   // TODO: I REALLY HATE THIS, replace this ASAP
-  // if we ignore everything else, why does it implement Hittable anyway?
+  // should really be using a spatial data structure
   class HittableList : public Hittable {
 private:
     std::vector<std::shared_ptr<Hittable>> Objects;
@@ -92,9 +93,10 @@ public:
     }
   };
 
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   Point3 CameraPosition{0, 0, 0};
 
-  int MaxDepth = 50;  // NOLINT
+  int MaxDepth = 50;  // Maximum number of bounces
   double vfov = 90;  // Vertical view angle (field of view)
 
   Point3 lookfrom = Point3(0, 0, 0);  // Point camera is looking from
@@ -105,13 +107,14 @@ public:
   double focus_dist = 10;  // Distance from camera lookfrom point to plane of perfect focus
 
   private:
-  int width = 600;  // NOLINT // Rendered Image Width
-  int height = 400;  // NOLINT // Rendered Image Height
-  int SamplesPerPixel = 100;  // NOLINT  // Count of random samples for each pixel
+  Dimension2d ViewportDimensions{.Width = 600, .Height = 400};  // Rendered Image Dimensions
+  int SamplesPerPixel = 100;  // Count of random samples for each pixel
   double PixelSamplesScale = 1.0 / SamplesPerPixel;  // Color scale factor for a sum of pixel samples
   Vec3 u, v, w;  // Camera frame basis vectors
   Vec3 defocus_disk_u;  // Defocus disk horizontal radius
   Vec3 defocus_disk_v;  // Defocus disk vertical radius
+
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
   HittableList World;
   std::vector<std::uint8_t> rlPixels;
@@ -132,7 +135,7 @@ public:
   }
 
   [[nodiscard]] HittableList& GetWorld() { return World; }
-  void ResizeViewport(int width, int height);
+  void ResizeViewport(const Dimension2d& dim);
 
   [[nodiscard]] Ray GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const;
   [[nodiscard]] const std::vector<std::uint8_t>& GetRGBAData();

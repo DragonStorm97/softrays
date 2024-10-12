@@ -1,6 +1,5 @@
 #pragma once
 
-#include "math.hpp"
 #include <cmath>
 #include <iostream>
 #include <ostream>
@@ -31,3 +30,8 @@ inline void PrintPPM(int width, int height, const std::vector<std::uint8_t>& dat
 {
   StreamPPM(std::cout, width, height, data);
 }
+
+struct Dimension2d {
+  int Width{};
+  int Height{};
+};

@@ -33,7 +33,7 @@ void RayTracer::Render()
   const auto theta = DegreesToRadians(vfov);
   const auto hyp = std::tan(theta / 2);
   const auto viewport_height = 2 * hyp * focus_dist;
-  const auto viewport_width = viewport_height * (static_cast<double>(width) / height);
+  const auto viewport_width = viewport_height * (static_cast<double>(ViewportDimensions.Width) / ViewportDimensions.Height);
 
   // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
   w = (lookfrom - lookat).unit_vector();
@@ -46,8 +46,8 @@ void RayTracer::Render()
   const Vec3 viewport_v = (-v) * viewport_height;  // Vector down viewport vertical edge
 
   // Calculate the horizontal and vertical delta vectors from pixel to pixel.
-  const auto pixel_delta_u = viewport_u / width;
-  const auto pixel_delta_v = viewport_v / height;
+  const auto pixel_delta_u = viewport_u / ViewportDimensions.Width;
+  const auto pixel_delta_v = viewport_v / ViewportDimensions.Height;
 
   // Calculate the location of the upper left pixel.
   const auto viewport_upper_left = CameraPosition - (w * focus_dist) - (viewport_u / 2) - (viewport_v / 2);
@@ -58,8 +58,8 @@ void RayTracer::Render()
   defocus_disk_u = u * defocus_radius;
   defocus_disk_v = v * defocus_radius;
 
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
+  for (int y = 0; y < ViewportDimensions.Height; ++y) {
+    for (int x = 0; x < ViewportDimensions.Width; ++x) {
       Colour pixel_colour{};
       if (SamplesPerPixel > 1) {
         for (int sample = 0; sample < SamplesPerPixel; ++sample) {
@@ -73,7 +73,7 @@ void RayTracer::Render()
         pixel_colour = RayColour(ray, MaxDepth, World);
       }
 
-      const auto pixel_start = static_cast<std::size_t>(y * width) + static_cast<std::size_t>(x);
+      const auto pixel_start = static_cast<std::size_t>(y * ViewportDimensions.Width) + static_cast<std::size_t>(x);
       pixels[pixel_start] = pixel_colour * PixelSamplesScale;
     }
   }
@@ -98,28 +98,29 @@ Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) co
   }
 
   Vec3 unit_direction = ray.Direction.unit_vector();
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   auto a = 0.5 * (unit_direction.y + 1.0);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   return (Colour{1.0, 1.0, 1.0} * (1.0 - a)) + (Colour{0.5, 0.7, 1.0} * a);
 }
 
-void RayTracer::ResizeViewport(int Width, int Height)
+void RayTracer::ResizeViewport(const Dimension2d& dim)
 {
-  this->width = Width;
-  this->height = Height;
+  ViewportDimensions = dim;
   pixels.clear();
-  pixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height), {0.0, 0.0, 0.0});
+  pixels.resize(static_cast<std::size_t>(ViewportDimensions.Width) * static_cast<std::size_t>(ViewportDimensions.Height), {0.0, 0.0, 0.0});
   rlPixels.clear();
-  rlPixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4UL, 0);
+  rlPixels.resize(static_cast<std::size_t>(ViewportDimensions.Width) * static_cast<std::size_t>(ViewportDimensions.Height) * 4UL, 0);
 }
 
 const std::vector<std::uint8_t>& RayTracer::GetRGBAData()
 {
   static constexpr Interval intensity(0.000, 0.999);
   static constexpr int byteMax{256};
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      const auto pixel_start = static_cast<std::size_t>(y * width) + static_cast<std::size_t>(x);
-      const auto rl_pixel_start = static_cast<std::size_t>((y * width) + x) * 4UL;
+  for (int y = 0; y < ViewportDimensions.Height; ++y) {
+    for (int x = 0; x < ViewportDimensions.Width; ++x) {
+      const auto pixel_start = static_cast<std::size_t>(y * ViewportDimensions.Width) + static_cast<std::size_t>(x);
+      const auto rl_pixel_start = static_cast<std::size_t>((y * ViewportDimensions.Width) + x) * 4UL;
 
       // NOTE: are we supposed to do gamma-correction here? (it does look more like the book with it)
       // const auto r = (pixels[pixel_start].x);

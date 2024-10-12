@@ -32,7 +32,7 @@ class Renderer {
 
   void SetupViewport(int width, int height)
   {
-    raytracer.ResizeViewport(width, height);
+    raytracer.ResizeViewport({.Width = width, .Height = height});
     Width = width;
     Height = height;
     baseImage.Unload();
@@ -130,8 +130,8 @@ class Renderer {
     raytracer.SetSamplesPerPixel(5);
     raytracer.MaxDepth = 10;
 #else
-    raytracer.SetSamplesPerPixel(500);
-    raytracer.MaxDepth = 50;
+    raytracer.SetSamplesPerPixel(10);
+    raytracer.MaxDepth = 5;
 #endif
     raytracer.vfov = 20;
     raytracer.lookfrom = Point3(13, 2, 3);

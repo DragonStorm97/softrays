@@ -10,8 +10,8 @@
   return distribution(generator);
 }
 
+// Returns a random real in [min,max).
 [[nodiscard]] inline double RandomDouble(double min, double max)
 {
-  // Returns a random real in [min,max).
   return min + ((max - min) * RandomDouble());
 }
