@@ -75,6 +75,9 @@ if(softrays_ENABLE_CATCH2_TESTS)
       GIT_REPOSITORY https://github.com/catchorg/Catch2.git
       GIT_TAG devel)
     FetchContent_MakeAvailable(Catch2)
+### make all include directories -isystem
+    get_target_property(CATCH2_IID Catch2 INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(Catch2 PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CATCH2_IID}")
     list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
   endif()
   include(Catch)
@@ -112,13 +115,9 @@ if(softrays_ENABLE_RAYLIB)
       DOWNLOAD_EXTRACT_TIMESTAMP OFF
       URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
     )
-    FetchContent_GetProperties(raylib)
-    if(NOT raylib_POPULATED) # Have we downloaded raylib yet?
-      set(FETCHCONTENT_QUIET NO)
-      FetchContent_Populate(raylib)
-      set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-      add_subdirectory(${raylib_SOURCE_DIR} ${raylib_BINARY_DIR})
-    endif()
+    FetchContent_MakeAvailable(raylib)
+    get_target_property(RAYLIB_IID raylib INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(raylib PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${RAYLIB_IID}")
   endif()
 
 # raylib-cpp
@@ -134,6 +133,8 @@ if(softrays_ENABLE_RAYLIB)
           GIT_TAG ${RAYLIB_CPP_VERSION}
     )
     FetchContent_MakeAvailable(raylib_cpp)
+    get_target_property(RAYCPP_IID raylib_cpp INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(raylib_cpp PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${RAYCPP_IID}")
   endif()
 
 # Fetch raygui
