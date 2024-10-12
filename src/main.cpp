@@ -4,7 +4,7 @@
 #include "material.hpp"
 #include "raytracer.hpp"
 #include "shapes.hpp"
-#include "utility.hpp"
+#include <iostream>
 #include <raylib-cpp.hpp>
 
 #include <cmath>

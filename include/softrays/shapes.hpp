@@ -1,7 +1,7 @@
 #pragma once
 
+#include "raytracer.hpp"
 #include <memory>
-#include <raytracer.hpp>
 #include <utility>
 
 class Sphere : public RayTracer::Hittable {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utility.hpp"
+#include "math.hpp"
 #include <cstdint>
 #include <memory>
 

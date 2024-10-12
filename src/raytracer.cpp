@@ -1,17 +1,13 @@
-#include "shapes.hpp"
+#include "math.hpp"
 #include "utility.hpp"
+#include <cstddef>
 #include <raytracer.hpp>
 
-Vec3 sample_square()
-{
-  // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
-  return Vec3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0);
-}
 Point3 RayTracer::DefocusDiskSample() const noexcept
 {
   // Returns a random point in the camera defocus disk.
-  const auto p = RandomInUnitDisk();
-  return CameraPosition + (defocus_disk_u * p.x) + (defocus_disk_v * p.y);
+  const auto rand = Vec3::RandomInUnitDisk();
+  return CameraPosition + (defocus_disk_u * rand.x) + (defocus_disk_v * rand.y);
 }
 
 RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const
@@ -19,7 +15,7 @@ RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, 
   // Construct a camera ray originating from the defocus disk and directed at a randomly
   // point around the pixel location x, y.
 
-  const auto offset = sample_square();
+  const auto offset = RandomInUnitSquare();
   const auto pixel_sample = pixel00_loc
       + (pixel_delta_u * (x + offset.x))
       + (pixel_delta_v * (y + offset.y));
@@ -27,7 +23,7 @@ RayTracer::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, 
   const auto ray_origin = (defocus_angle <= 0) ? CameraPosition : DefocusDiskSample();
   const auto ray_direction = pixel_sample - ray_origin;
 
-  return Ray{ray_origin, ray_direction};
+  return Ray{.Origin = ray_origin, .Direction = ray_direction};
 }
 
 void RayTracer::Render()
@@ -35,8 +31,8 @@ void RayTracer::Render()
   CameraPosition = lookfrom;
 
   const auto theta = DegreesToRadians(vfov);
-  const auto h = std::tan(theta / 2);
-  const auto viewport_height = 2 * h * focus_dist;
+  const auto hyp = std::tan(theta / 2);
+  const auto viewport_height = 2 * hyp * focus_dist;
   const auto viewport_width = viewport_height * (static_cast<double>(width) / height);
 
   // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
@@ -77,7 +73,7 @@ void RayTracer::Render()
         pixel_colour = RayColour(ray, MaxDepth, World);
       }
 
-      const auto pixel_start = static_cast<std::size_t>((y * width) + x);
+      const auto pixel_start = static_cast<std::size_t>(y * width) + static_cast<std::size_t>(x);
       pixels[pixel_start] = pixel_colour * PixelSamplesScale;
     }
   }
@@ -91,7 +87,8 @@ Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) co
   }
 
   HitData hit;
-  if (world.Hit(ray, {0.001, Infinity}, hit)) {
+  constexpr auto minDist = 0.001;
+  if (world.Hit(ray, {.Min = minDist, .Max = Infinity}, hit)) {
     Ray scattered{};
     Colour attenuation{};
     if (hit.Material->Scatter(ray, hit, attenuation, scattered)) {
@@ -112,7 +109,7 @@ void RayTracer::ResizeViewport(int Width, int Height)
   pixels.clear();
   pixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height), {0.0, 0.0, 0.0});
   rlPixels.clear();
-  rlPixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4UL, 90);
+  rlPixels.resize(static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4UL, 0);
 }
 
 const std::vector<std::uint8_t>& RayTracer::GetRGBAData()
@@ -121,22 +118,22 @@ const std::vector<std::uint8_t>& RayTracer::GetRGBAData()
   static constexpr int byteMax{256};
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      const auto pixel_start = static_cast<std::size_t>((y * width) + x);
-      const auto rl_pixel_start = static_cast<std::size_t>(((y * width) + x) * 4);
+      const auto pixel_start = static_cast<std::size_t>(y * width) + static_cast<std::size_t>(x);
+      const auto rl_pixel_start = static_cast<std::size_t>((y * width) + x) * 4UL;
 
       // NOTE: are we supposed to do gamma-correction here? (it does look more like the book with it)
       // const auto r = (pixels[pixel_start].x);
       // const auto g = (pixels[pixel_start].y);
       // const auto b = (pixels[pixel_start].z);
 
-      const auto r = linear_to_gamma(pixels[pixel_start].x);
-      const auto g = linear_to_gamma(pixels[pixel_start].y);
-      const auto b = linear_to_gamma(pixels[pixel_start].z);
+      const auto r = LinearToGamma(pixels[pixel_start].x);
+      const auto g = LinearToGamma(pixels[pixel_start].y);
+      const auto b = LinearToGamma(pixels[pixel_start].z);
 
       rlPixels[rl_pixel_start] = static_cast<std::uint8_t>(intensity.Clamp(r) * byteMax);
       rlPixels[rl_pixel_start + 1] = static_cast<std::uint8_t>(intensity.Clamp(g) * byteMax);
       rlPixels[rl_pixel_start + 2] = static_cast<std::uint8_t>(intensity.Clamp(b) * byteMax);
-      rlPixels[rl_pixel_start + 3] = 255;
+      rlPixels[rl_pixel_start + 3] = byteMax - 1;
     }
   }
   return rlPixels;
