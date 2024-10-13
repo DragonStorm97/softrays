@@ -16,6 +16,12 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(softrays_IS_TOP_LEVEL_PROJECT TRUE)
 endif()
 
+# Check if the project is the top-level project
+set(softrays_IS_TOP_LEVEL_PROJECT FALSE)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(softrays_IS_TOP_LEVEL_PROJECT TRUE)
+endif()
+
 # adjust or override some CMake defaults
 include(cmake/OverrideCMakeDefaults.cmake)
 
@@ -38,8 +44,8 @@ if(softrays_IS_TOP_LEVEL_PROJECT)
   option(softrays_ENABLE_GLOBS "Enable GLOB sourcing for softrays" ON)
   option(softrays_ENABLE_RAYLIB "Enable Raylib for softrays" ON)
   option(softrays_ENABLE_FLECS "Enable flecs for softrays" OFF)
-  option(softrays_BUILD_APPS "Enable App building for softrays" OFF)
-  option(softrays_STANDALONE "Enable App building for softrays" ON)
+  option(softrays_BUILD_APPS "Enable App building for softrays" ON)
+  option(softrays_STANDALONE "Enable App building for softrays" OFF)
   # create a symbolic link to the compile_commands file:
   file(
     CREATE_LINK
@@ -61,7 +67,6 @@ if(softrays_STANDALONE)
 else()
   add_subdirectory(${CMAKE_PROJECT_NAME}/library/src)
 endif()
-
 
 # Catch2 v3
 if(softrays_ENABLE_CATCH2_TESTS)
@@ -187,4 +192,5 @@ if(softrays_BUILD_APPS)
     endif()
   endforeach()
 endif()
+
 
