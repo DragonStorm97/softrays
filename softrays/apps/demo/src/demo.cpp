@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <iostream>
 #include <raylib-cpp.hpp>
+#include <raylib.h>
 
 using softrays::Colour;
 using softrays::Dielectric;
@@ -27,7 +28,8 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr Dimension2d screen{.Width = 200, .Height = 200};
+constexpr Dimension2d screen{.Width = 600, .Height = 600};
+constexpr Dimension2d renderDim{.Width = 200, .Height = 200};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -38,13 +40,15 @@ class Renderer {
   raylib::Texture RenderTarget;
 
   Dimension2d ScreenDim{screen};
+  Dimension2d RenderDim{renderDim};
 
   void SetupViewport(const Dimension2d& dim)
   {
-    raytracer.ResizeViewport(dim);
+    RenderDim = dim;
+    raytracer.ResizeViewport(RenderDim);
     baseImage.Unload();
     RenderTarget.Unload();
-    baseImage = GenImageColor(dim.Width, dim.Height, raylib::Color::Black());
+    baseImage = GenImageColor(RenderDim.Width, RenderDim.Height, raylib::Color::Black());
     // TODO: resize our texture as well (not really working at the moment, at some point we get a log "D3D12: Removing Device.", which is bad)
     baseImage.Format(PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
     RenderTarget = LoadTextureFromImage(baseImage);
@@ -54,7 +58,7 @@ class Renderer {
   {
     InitWindow(ScreenDim.Width, ScreenDim.Height, "Softrays");
     SetTargetFPS(maxFps);
-    SetupViewport(ScreenDim);
+    SetupViewport(renderDim);
   }
 
   void UpdateDrawFrame()
@@ -74,8 +78,8 @@ class Renderer {
     const auto windowWidth = GetScreenWidth();
     const auto windowHeight = GetScreenHeight();
 
-    if (static_cast<std::size_t>(windowHeight) * static_cast<std::size_t>(windowWidth) != raytracer.GetPixelData().size()) {
-      std::cout << "resizing viewport (" << windowWidth << "x" << windowHeight << ")" << raytracer.GetPixelData().size() << "\n";
+    if (static_cast<std::size_t>(windowHeight) * static_cast<std::size_t>(windowWidth) != (static_cast<std::size_t>(ScreenDim.Width * ScreenDim.Height))) {
+      std::cout << "resizing viewport (" << windowWidth << "x" << windowHeight << ")(" << ScreenDim.Width << "x" << ScreenDim.Height << "\n";
       SetupViewport({.Width = windowWidth, .Height = windowHeight});
     }
 
@@ -85,7 +89,7 @@ class Renderer {
     raytracer.Render();
     RenderTarget.Update(raytracer.GetRGBAData().data());
 
-    RenderTarget.Draw(0, 0);
+    RenderTarget.Draw(Rectangle{0, 0, static_cast<float>(RenderDim.Width), static_cast<float>(RenderDim.Height)}, Rectangle{0, 0, static_cast<float>(ScreenDim.Width), static_cast<float>(ScreenDim.Height)});
     // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom) (our raytracer takes care of that already)
     // target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(target->height)}, {0, 0}, WHITE);
 
