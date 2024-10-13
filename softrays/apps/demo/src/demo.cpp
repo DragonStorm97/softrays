@@ -27,7 +27,7 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr Dimension2d screen{.Width = 800, .Height = 600};
+constexpr Dimension2d screen{.Width = 200, .Height = 200};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -141,10 +141,10 @@ class Renderer {
     raytracer.SetSamplesPerPixel(5);
     raytracer.MaxDepth = 10;
 #else
-    raytracer.SetSamplesPerPixel(10);
-    raytracer.MaxDepth = 5;
+    raytracer.SetSamplesPerPixel(20);
+    raytracer.MaxDepth = 10;
 #endif
-    raytracer.FieldOfView = 20;
+    raytracer.FieldOfView = 40;
     raytracer.LookFrom = Point3(13, 2, 3);
     raytracer.LookAt = Point3(0, 0, 0);
     raytracer.CameraUp = Vec3(0, 1, 0);

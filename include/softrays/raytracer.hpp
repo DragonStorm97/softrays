@@ -42,7 +42,8 @@ class RayTracer {
   {
     return SamplesPerPixel;
   }
-  void SetSamplesPerPixel(int spp)
+
+  void SetSamplesPerPixel(int spp) noexcept
   {
     SamplesPerPixel = spp;
     PixelSamplesScale = 1.0 / spp;
