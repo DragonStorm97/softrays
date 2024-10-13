@@ -1,220 +1,76 @@
 #pragma once
 
-#include <algorithm>
+#include "math.hpp"
+
 #include <cmath>
 #include <iostream>
-#include <limits>
-#include <numbers>
+#include <memory>
 #include <ostream>
-#include <random>
 #include <vector>
 
-[[nodiscard]] inline double RandomDouble()
-{
-  static std::random_device rd;
-  static std::mt19937 generator{rd()};
-  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-  return distribution(generator);
-}
+namespace softrays {
 
-[[nodiscard]] inline double RandomDouble(double min, double max)
-{
-  // Returns a random real in [min,max).
-  return min + (max - min) * RandomDouble();
-}
+struct HitData {
+  Point3 Location{};
+  Vec3 Normal{};
+  double Time{};
+  bool FrontFace{};
+  std::shared_ptr<struct MaterialBase> Material;
 
-struct Vec3 {
-  double x = 0.0;
-  double y = 0.0;
-  double z = 0.0;
+  // TODO: do we really want this here?
+  void SetFaceNormal(const Ray& ray, const Vec3& outward_normal)
+  {
+    // Sets the hit record normal vector.
+    // NOTE: the parameter `outward_normal` is assumed to have unit length.
 
-  [[nodiscard]] constexpr Vec3 operator-() const noexcept
-  {
-    return {-x, -y, -z};
+    FrontFace = ray.Direction.Dot(outward_normal) < 0;
+    Normal = FrontFace ? outward_normal : -outward_normal;
   }
-  constexpr void operator+=(const Vec3& other) noexcept
+};
+
+// TODO: do we want this? or do we go with a std::variant, or something else?
+class Hittable {
+  public:
+  Hittable() = default;
+  Hittable(const Hittable&) = default;
+  Hittable(Hittable&&) = default;
+  Hittable& operator=(const Hittable&) = default;
+  Hittable& operator=(Hittable&&) = default;
+  virtual ~Hittable() = default;
+  [[nodiscard]] virtual bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const = 0;
+};
+
+// TODO: I REALLY HATE THIS, replace this ASAP
+// should really be using a spatial data structure
+class HittableList : public Hittable {
+  private:
+  std::vector<std::shared_ptr<Hittable>> Objects;
+
+  public:
+  void Clear() { Objects.clear(); }
+  void Add(std::shared_ptr<Hittable>&& object)
   {
-    x += other.x;
-    y += other.y;
-    z += other.z;
-  }
-  constexpr void operator*=(double val) noexcept
-  {
-    x *= val;
-    y *= val;
-    z *= val;
-  }
-  constexpr void operator/=(double val) noexcept
-  {
-    *this *= 1.0 / val;
-  }
-  [[nodiscard]] constexpr double length_squared() const noexcept
-  {
-    return (x * x) + (y * y) + (z * z);
-  }
-  [[nodiscard]] constexpr double length() const noexcept
-  {
-    return std::sqrt(length_squared());
+    Objects.push_back(std::move(object));
   }
 
-  [[nodiscard]] constexpr Vec3 operator+(const Vec3& vec) const noexcept
+  [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
   {
-    return {x + vec.x, y + vec.y, z + vec.z};
-  }
+    HitData temp_hit{};
+    bool hit_anything = false;
+    double closest_so_far = ray_time.Max;
 
-  [[nodiscard]] constexpr Vec3 operator-(const Vec3& vec) const noexcept
-  {
-    return {x - vec.x, y - vec.y, z - vec.z};
-  }
-
-  [[nodiscard]] constexpr Vec3 operator*(const Vec3& vec) const noexcept
-  {
-    return {x * vec.x, y * vec.y, z * vec.z};
-  }
-
-  [[nodiscard]] constexpr Vec3 operator*(double val) const noexcept
-  {
-    return {val * x, val * y, val * z};
-  }
-
-  [[nodiscard]] constexpr Vec3 operator/(double val) const noexcept
-  {
-    return (*this) * (1 / val);
-  }
-
-  [[nodiscard]] constexpr double dot(const Vec3& vec) const noexcept
-  {
-    return x * vec.x
-        + y * vec.y
-        + z * vec.z;
-  }
-
-  [[nodiscard]] constexpr Vec3 cross(const Vec3& vec) const noexcept
-  {
-    return {y * vec.z - z * vec.y,
-        z * vec.x - x * vec.z,
-        x * vec.y - y * vec.x};
-  }
-
-  [[nodiscard]] constexpr Vec3 unit_vector() const noexcept
-  {
-    return *this / length();
-  }
-
-  [[nodiscard]] static inline Vec3 RandomUnitVector() noexcept
-  {
-    // NOTE: this was in the book, but surely we are better off getting a random vector and just normalising it???
-    while (true) {
-      const auto p = Vec3::Random(-1.0, 1.0);
-      const auto lensq = p.length_squared();
-      if (1e-160 < lensq && lensq <= 1) {
-        return p / std::sqrt(lensq);
+    for (const auto& object : Objects) {
+      if (object->Hit(ray, {.Min = ray_time.Min, .Max = closest_so_far}, temp_hit)) {
+        closest_so_far = temp_hit.Time;
+        hit_anything = true;
+        hit = temp_hit;
       }
     }
-    // NOTE: I tried this, but it did look different for some reason
-    // return Vec3::Random().unit_vector();
-  }
-
-  [[nodiscard]] inline static Vec3 Random()
-  {
-    return Vec3(RandomDouble(), RandomDouble(), RandomDouble());
-  }
-
-  [[nodiscard]] inline static Vec3 Random(double min, double max)
-  {
-    return Vec3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
-  }
-  [[nodiscard]] constexpr bool near_zero() const noexcept
-  {
-    // Return true if the vector is close to zero in all dimensions.
-    auto s = 1e-8;
-    return (std::fabs(x) < s) && (std::fabs(y) < s) && (std::fabs(z) < s);
-  }
-  [[nodiscard]] constexpr inline Vec3 Reflect(const Vec3& normal) const noexcept
-  {
-    return *this - normal * dot(normal) * 2;
-  }
-  [[nodiscard]] constexpr inline Vec3 Refract(const Vec3& normal, double etai_over_etat) const noexcept
-  {
-    auto cos_theta = std::fmin((-*this).dot(normal), 1.0);
-    Vec3 r_out_perp = (*this + normal * cos_theta) * etai_over_etat;
-    Vec3 r_out_parallel = normal * (-std::sqrt(std::fabs(1.0 - r_out_perp.length_squared())));
-    return r_out_perp + r_out_parallel;
+    return hit_anything;
   }
 };
 
-[[nodiscard]] inline Vec3 RandomOnHemisphere(const Vec3& normal) noexcept
-{
-  const Vec3 on_unit_sphere = Vec3::RandomUnitVector();
-  // In the same hemisphere as the normal
-  return (on_unit_sphere.dot(normal) > 0.0) ? on_unit_sphere : -on_unit_sphere;
-}
-
-[[nodiscard]] inline Vec3 RandomInUnitDisk() noexcept
-{
-  // TODO: again, surely there's a better way than looping
-  while (true) {
-    auto p = Vec3{RandomDouble(-1, 1), RandomDouble(-1, 1), 0};
-    if (p.length_squared() < 1)
-      return p;
-  }
-}
-
-// point3 is just an alias for vec3, but useful for geometric clarity in the code.
-using Point3 = Vec3;
-
-// Vector Utility Functions
-
-inline std::ostream& operator<<(std::ostream& out, const Vec3& vec)
-{
-  return out << vec.x << ' ' << vec.y << ' ' << vec.z;
-}
-
-using Colour = Vec3;
-
-// Constants
-constexpr auto Infinity = std::numeric_limits<double>::infinity();
-constexpr double Pi = std::numbers::pi;
-constexpr auto DegreesToRadiansFactor = Pi / 180.0;
-
-// Utility Functions
-
-inline double DegreesToRadians(double degrees)
-{
-  return degrees * DegreesToRadiansFactor;
-}
-
-struct Interval {
-  double Min = -Infinity;
-  double Max = Infinity;
-
-  [[nodiscard]] double Size() const noexcept
-  {
-    return Max - Min;
-  }
-
-  [[nodiscard]] bool Contains(double x) const noexcept
-  {
-    return Min <= x && x <= Max;
-  }
-
-  [[nodiscard]] bool Surrounds(double x) const noexcept
-  {
-    return Min < x && x < Max;
-  }
-
-  [[nodiscard]] double Clamp(double x) const noexcept
-  {
-    return std::clamp(x, Min, Max);
-  }
-  const static Interval Empty;
-  const static Interval Universe;
-};
-
-inline const Interval Interval::Empty = Interval{};
-inline const Interval Interval::Universe = Interval{-Infinity, Infinity};
-
-constexpr inline double linear_to_gamma(double linear_component)
+constexpr double LinearToGamma(double linear_component)
 {
   if (linear_component > 0)
     return std::sqrt(linear_component);
@@ -228,7 +84,7 @@ inline void StreamPPM(std::ostream& stream, int width, int height, const std::ve
          << width << ' ' << height << "\n255\n";
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      const auto rl_pixel_start = static_cast<std::size_t>(((y * width) + x) * 4);
+      const auto rl_pixel_start = static_cast<std::size_t>((y * width) + x) * 4;
       // Write out the pixel color components.
       stream << ' ' << data[rl_pixel_start] << ' ' << data[rl_pixel_start + 1] << ' ' << data[rl_pixel_start + 2] << '\n';
     }
@@ -238,4 +94,17 @@ inline void StreamPPM(std::ostream& stream, int width, int height, const std::ve
 inline void PrintPPM(int width, int height, const std::vector<std::uint8_t>& data)
 {
   StreamPPM(std::cout, width, height, data);
+}
+
+struct Dimension2d {
+  int Width{};
+  int Height{};
+};
+
+// Vector Utility Functions
+inline std::ostream& operator<<(std::ostream& out, const Vec3& vec)
+{
+  return out << vec.x << ' ' << vec.y << ' ' << vec.z;
+}
+
 }

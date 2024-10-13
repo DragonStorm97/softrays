@@ -1,27 +1,31 @@
 #pragma once
 
-#include <raytracer.hpp>
+#include "material.hpp"
+#include "utility.hpp"
+
+#include <memory>
 #include <utility>
 
-class Sphere : public RayTracer::Hittable {
+namespace softrays {
+class Sphere : public Hittable {
   private:
   Point3 Center;
   double Radius;
-  std::shared_ptr<RayTracer::Material> Material;
+  std::shared_ptr<MaterialBase> Material;
 
   public:
-  Sphere(const Point3& center, double radius, std::shared_ptr<RayTracer::Material>&& mat) noexcept
+  Sphere(const Point3& center, double radius, std::shared_ptr<MaterialBase>&& mat) noexcept
       : Center(center), Radius(std::fmax(0, radius)), Material(std::move(mat))
   {
   }
 
-  [[nodiscard]] bool Hit(const RayTracer::Ray& ray, Interval ray_time, RayTracer::HitData& hit) const override
+  [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
   {
     const Vec3 o_c = Center - ray.Origin;
-    const auto a = ray.Direction.length_squared();
-    const auto h = ray.Direction.dot(o_c);
-    const auto c = o_c.length_squared() - (Radius * Radius);
-    const auto discriminant = (h * h) - (a * c);
+    const auto a = ray.Direction.LengthSquared();
+    const auto hyp = ray.Direction.Dot(o_c);
+    const auto c_comp = o_c.LengthSquared() - (Radius * Radius);
+    const auto discriminant = (hyp * hyp) - (a * c_comp);
 
     if (discriminant < 0) {
       return false;
@@ -30,18 +34,19 @@ class Sphere : public RayTracer::Hittable {
     const auto sqrtd = std::sqrt(discriminant);
 
     // Find the nearest root that lies in the acceptable range.
-    auto root = (h - sqrtd) / a;
+    auto root = (hyp - sqrtd) / a;
     if (!ray_time.Surrounds(root)) {
-      root = (h + sqrtd) / a;
+      root = (hyp + sqrtd) / a;
       if (!ray_time.Surrounds(root))
         return false;
     }
 
     hit.Time = root;
-    hit.Location = ray.at(hit.Time);
+    hit.Location = ray.At(hit.Time);
     const Vec3 outward_normal = (hit.Location - Center) / Radius;
     hit.SetFaceNormal(ray, outward_normal);
     hit.Material = Material;
     return true;
   }
 };
+}

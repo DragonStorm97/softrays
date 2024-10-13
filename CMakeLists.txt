@@ -16,6 +16,12 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(softrays_IS_TOP_LEVEL_PROJECT TRUE)
 endif()
 
+# Check if the project is the top-level project
+set(softrays_IS_TOP_LEVEL_PROJECT FALSE)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(softrays_IS_TOP_LEVEL_PROJECT TRUE)
+endif()
+
 # adjust or override some CMake defaults
 include(cmake/OverrideCMakeDefaults.cmake)
 
@@ -38,8 +44,8 @@ if(softrays_IS_TOP_LEVEL_PROJECT)
   option(softrays_ENABLE_GLOBS "Enable GLOB sourcing for softrays" ON)
   option(softrays_ENABLE_RAYLIB "Enable Raylib for softrays" ON)
   option(softrays_ENABLE_FLECS "Enable flecs for softrays" OFF)
-  option(softrays_BUILD_APPS "Enable App building for softrays" OFF)
-  option(softrays_STANDALONE "Enable App building for softrays" ON)
+  option(softrays_BUILD_APPS "Enable App building for softrays" ON)
+  option(softrays_STANDALONE "Enable App building for softrays" OFF)
   # create a symbolic link to the compile_commands file:
   file(
     CREATE_LINK
@@ -62,7 +68,6 @@ else()
   add_subdirectory(${CMAKE_PROJECT_NAME}/library/src)
 endif()
 
-
 # Catch2 v3
 if(softrays_ENABLE_CATCH2_TESTS)
   # enable testing with CTest
@@ -75,6 +80,9 @@ if(softrays_ENABLE_CATCH2_TESTS)
       GIT_REPOSITORY https://github.com/catchorg/Catch2.git
       GIT_TAG devel)
     FetchContent_MakeAvailable(Catch2)
+### make all include directories -isystem
+    get_target_property(CATCH2_IID Catch2 INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(Catch2 PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CATCH2_IID}")
     list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
   endif()
   include(Catch)
@@ -112,13 +120,9 @@ if(softrays_ENABLE_RAYLIB)
       DOWNLOAD_EXTRACT_TIMESTAMP OFF
       URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
     )
-    FetchContent_GetProperties(raylib)
-    if(NOT raylib_POPULATED) # Have we downloaded raylib yet?
-      set(FETCHCONTENT_QUIET NO)
-      FetchContent_Populate(raylib)
-      set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-      add_subdirectory(${raylib_SOURCE_DIR} ${raylib_BINARY_DIR})
-    endif()
+    FetchContent_MakeAvailable(raylib)
+    get_target_property(RAYLIB_IID raylib INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(raylib PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${RAYLIB_IID}")
   endif()
 
 # raylib-cpp
@@ -134,6 +138,8 @@ if(softrays_ENABLE_RAYLIB)
           GIT_TAG ${RAYLIB_CPP_VERSION}
     )
     FetchContent_MakeAvailable(raylib_cpp)
+    get_target_property(RAYCPP_IID raylib_cpp INTERFACE_INCLUDE_DIRECTORIES)
+    set_target_properties(raylib_cpp PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${RAYCPP_IID}")
   endif()
 
 # Fetch raygui
@@ -186,4 +192,5 @@ if(softrays_BUILD_APPS)
     endif()
   endforeach()
 endif()
+
 
