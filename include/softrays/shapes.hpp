@@ -22,9 +22,9 @@ class Sphere : public Hittable {
   [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
   {
     const Vec3 o_c = Center - ray.Origin;
-    const auto a = ray.Direction.length_squared();
-    const auto hyp = ray.Direction.dot(o_c);
-    const auto c_comp = o_c.length_squared() - (Radius * Radius);
+    const auto a = ray.Direction.LengthSquared();
+    const auto hyp = ray.Direction.Dot(o_c);
+    const auto c_comp = o_c.LengthSquared() - (Radius * Radius);
     const auto discriminant = (hyp * hyp) - (a * c_comp);
 
     if (discriminant < 0) {
@@ -42,7 +42,7 @@ class Sphere : public Hittable {
     }
 
     hit.Time = root;
-    hit.Location = ray.at(hit.Time);
+    hit.Location = ray.At(hit.Time);
     const Vec3 outward_normal = (hit.Location - Center) / Radius;
     hit.SetFaceNormal(ray, outward_normal);
     hit.Material = Material;

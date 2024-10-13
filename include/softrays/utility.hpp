@@ -23,7 +23,7 @@ struct HitData {
     // Sets the hit record normal vector.
     // NOTE: the parameter `outward_normal` is assumed to have unit length.
 
-    FrontFace = ray.Direction.dot(outward_normal) < 0;
+    FrontFace = ray.Direction.Dot(outward_normal) < 0;
     Normal = FrontFace ? outward_normal : -outward_normal;
   }
 };
@@ -99,4 +99,11 @@ struct Dimension2d {
   int Width{};
   int Height{};
 };
+
+// Vector Utility Functions
+inline std::ostream& operator<<(std::ostream& out, const Vec3& vec)
+{
+  return out << vec.x << ' ' << vec.y << ' ' << vec.z;
+}
+
 }

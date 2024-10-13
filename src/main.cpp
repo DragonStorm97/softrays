@@ -109,7 +109,7 @@ class Renderer {
       for (int b = -11; b < 11; b++) {
         auto choose_mat = RandomDouble();
         Point3 center(a + (0.9 * RandomDouble()), 0.2, b + (0.9 * RandomDouble()));
-        if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
+        if ((center - Point3(4, 0.2, 0)).Length() > 0.9) {
           if (choose_mat < 0.8) {
             // diffuse
             auto albedo = Colour::Random() * Colour::Random();

@@ -34,9 +34,9 @@ void RayTracer::SetupCamera()
   CameraPosition = LookFrom;
 
   // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
-  Camera_w = (LookFrom - LookAt).unit_vector();
-  Camera_u = CameraUp.cross(Camera_w).unit_vector();
-  Camera_v = Camera_w.cross(Camera_u);
+  Camera_w = (LookFrom - LookAt).UnitVector();
+  Camera_u = CameraUp.Cross(Camera_w).UnitVector();
+  Camera_v = Camera_w.Cross(Camera_u);
 }
 
 void RayTracer::Render()
@@ -88,6 +88,7 @@ void RayTracer::Render()
   }
 }
 
+// TODO: we have a maxDepth, so we could remove this recursion in favour of a static array and loop
 Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) const
 {
   // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -106,7 +107,7 @@ Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) co
     return {0, 0, 0};
   }
 
-  Vec3 unit_direction = ray.Direction.unit_vector();
+  Vec3 unit_direction = ray.Direction.UnitVector();
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   auto a = 0.5 * (unit_direction.y + 1.0);
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)

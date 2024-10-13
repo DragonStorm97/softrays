@@ -27,7 +27,7 @@ class Lambertian : public MaterialBase {
     auto scatter_direction = hit.Normal + Vec3::RandomUnitVector();
 
     // Catch degenerate scatter direction
-    if (scatter_direction.near_zero())
+    if (scatter_direction.NearZero())
       scatter_direction = hit.Normal;
     scattered = {.Origin = hit.Location, .Direction = scatter_direction};
     attenuation = Albedo;
@@ -44,10 +44,10 @@ class Metal : public MaterialBase {
       Colour& attenuation, Ray& scattered) const override
   {
     Vec3 reflected = r_in.Direction.Reflect(hit.Normal);
-    reflected = reflected.unit_vector() + (Vec3::RandomUnitVector() * Fuzz);
+    reflected = reflected.UnitVector() + (Vec3::RandomUnitVector() * Fuzz);
     scattered = {.Origin = hit.Location, .Direction = reflected};
     attenuation = Albedo;
-    return scattered.Direction.dot(hit.Normal) > 0;
+    return scattered.Direction.Dot(hit.Normal) > 0;
   }
 
   Colour Albedo{};
@@ -63,8 +63,8 @@ class Dielectric : public MaterialBase {
     attenuation = {.x = 1.0, .y = 1.0, .z = 1.0};
     double ri = hit.FrontFace ? (1.0 / RefractionIndex) : RefractionIndex;
 
-    Vec3 unit_direction = r_in.Direction.unit_vector();
-    double cos_theta = std::fmin((-unit_direction).dot(hit.Normal), 1.0);
+    Vec3 unit_direction = r_in.Direction.UnitVector();
+    double cos_theta = std::fmin((-unit_direction).Dot(hit.Normal), 1.0);
     double sin_theta = std::sqrt(1.0 - (cos_theta * cos_theta));
 
     bool cannot_refract = ri * sin_theta > 1.0;
