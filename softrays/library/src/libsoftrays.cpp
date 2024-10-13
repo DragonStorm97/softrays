@@ -1,8 +1,2 @@
-#include "softrays.hpp"
 #include "libsoftrays.hpp"
-
-int libfunc()
-{
-  return coolNumberBro;
-}
-
+#include "softrays.hpp"

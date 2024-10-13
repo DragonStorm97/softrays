@@ -2,6 +2,7 @@
 #include "material.hpp"  //NOLINT(unused-includes) for implementation of MaterialBase
 #include "math.hpp"
 #include "utility.hpp"
+
 #include <cstddef>
 
 using namespace softrays;
