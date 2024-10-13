@@ -26,10 +26,10 @@ based off of [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/R
 
 ## What's next
 
-- Major refactoring
-- Unit Tests
-- Performance enhancements and deep-dives
-  - Profiling
-  - Data Layouts
-  - Multithreading
-  - SIMD
+- [x] Major refactoring
+- [x] Unit Tests
+- [ ] Performance enhancements and deep-dives
+  - [ ] Profiling
+  - [ ] Data Layouts
+  - [ ] Multithreading
+  - [ ] SIMD
