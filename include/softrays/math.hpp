@@ -180,8 +180,8 @@ constexpr auto DegreesToRadiansFactor = Pi / 180.0;
 }
 
 struct Interval {
-  double Min = -Infinity;
-  double Max = Infinity;
+  double Min = Infinity;
+  double Max = -Infinity;
 
   [[nodiscard]] double Size() const noexcept
   {
@@ -206,7 +206,7 @@ struct Interval {
   const static Interval Universe;
 };
 
-inline const Interval Interval::Empty = Interval{};
+inline const Interval Interval::Empty = Interval{.Min = +Infinity, .Max = -Infinity};
 inline const Interval Interval::Universe = Interval{.Min = -Infinity, .Max = Infinity};
 
 struct Ray {

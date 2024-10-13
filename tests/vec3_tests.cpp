@@ -10,12 +10,12 @@ using softrays::Vec3;
 
 TEST_CASE("Vec3 basic construction and initialization")
 {
-  Vec3 v;
+  const Vec3 v;
   REQUIRE_THAT(v.x, WithinRel(0.0));
   REQUIRE_THAT(v.y, WithinRel(0.0));
   REQUIRE_THAT(v.z, WithinRel(0.0));
 
-  Vec3 v2{.x = 1.0, .y = 2.0, .z = 3.0};
+  const Vec3 v2{.x = 1.0, .y = 2.0, .z = 3.0};
   REQUIRE_THAT(v2.x, WithinRel(1.0));
   REQUIRE_THAT(v2.y, WithinRel(2.0));
   REQUIRE_THAT(v2.z, WithinRel(3.0));
@@ -23,8 +23,8 @@ TEST_CASE("Vec3 basic construction and initialization")
 
 TEST_CASE("Vec3 unary minus operator")
 {
-  Vec3 v{.x = 1.0, .y = -2.0, .z = 3.0};
-  Vec3 neg = -v;
+  const Vec3 v{.x = 1.0, .y = -2.0, .z = 3.0};
+  const Vec3 neg = -v;
   REQUIRE_THAT(neg.x, WithinRel(-1.0));
   REQUIRE_THAT(neg.y, WithinRel(2.0));
   REQUIRE_THAT(neg.z, WithinRel(-3.0));
@@ -32,14 +32,14 @@ TEST_CASE("Vec3 unary minus operator")
 
 TEST_CASE("Vec3 addition and subtraction")
 {
-  Vec3 v1{.x = 1.0, .y = 2.0, .z = 3.0};
-  Vec3 v2{.x = -1.0, .y = 4.0, .z = -3.0};
-  Vec3 sum = v1 + v2;
+  const Vec3 v1{.x = 1.0, .y = 2.0, .z = 3.0};
+  const Vec3 v2{.x = -1.0, .y = 4.0, .z = -3.0};
+  const Vec3 sum = v1 + v2;
   REQUIRE_THAT(sum.x, WithinRel(0.0));
   REQUIRE_THAT(sum.y, WithinRel(6.0));
   REQUIRE_THAT(sum.z, WithinRel(0.0));
 
-  Vec3 diff = v1 - v2;
+  const Vec3 diff = v1 - v2;
   REQUIRE_THAT(diff.x, WithinRel(2.0));
   REQUIRE_THAT(diff.y, WithinRel(-2.0));
   REQUIRE_THAT(diff.z, WithinRel(6.0));
@@ -61,23 +61,23 @@ TEST_CASE("Vec3 scalar multiplication and division")
 
 TEST_CASE("Vec3 Length and LengthSquared")
 {
-  Vec3 v{.x = 3.0, .y = 4.0, .z = 0.0};
+  const Vec3 v{.x = 3.0, .y = 4.0, .z = 0.0};
   REQUIRE_THAT(v.LengthSquared(), WithinRel(25.0));
   REQUIRE_THAT(v.Length(), WithinRel(5.0));
 }
 
 TEST_CASE("Vec3 dot product")
 {
-  Vec3 v1{.x = 1.0, .y = 2.0, .z = 3.0};
-  Vec3 v2{.x = 4.0, .y = -5.0, .z = 6.0};
+  const Vec3 v1{.x = 1.0, .y = 2.0, .z = 3.0};
+  const Vec3 v2{.x = 4.0, .y = -5.0, .z = 6.0};
   REQUIRE_THAT(v1.Dot(v2), WithinRel(12.0));
 }
 
 TEST_CASE("Vec3 cross product")
 {
-  Vec3 v1{.x = 1.0, .y = 2.0, .z = 3.0};
-  Vec3 v2{.x = 4.0, .y = 5.0, .z = 6.0};
-  Vec3 cross = v1.Cross(v2);
+  const Vec3 v1{.x = 1.0, .y = 2.0, .z = 3.0};
+  const Vec3 v2{.x = 4.0, .y = 5.0, .z = 6.0};
+  const Vec3 cross = v1.Cross(v2);
   REQUIRE_THAT(cross.x, WithinRel(-3.0));
   REQUIRE_THAT(cross.y, WithinRel(6.0));
   REQUIRE_THAT(cross.z, WithinRel(-3.0));
@@ -85,8 +85,8 @@ TEST_CASE("Vec3 cross product")
 
 TEST_CASE("Vec3 UnitVector")
 {
-  Vec3 v{.x = 3.0, .y = 4.0, .z = 0.0};
-  Vec3 unit = v.UnitVector();
+  const Vec3 v{.x = 3.0, .y = 4.0, .z = 0.0};
+  const Vec3 unit = v.UnitVector();
   REQUIRE_THAT(unit.Length(), WithinRel(1.0));
   REQUIRE_THAT(unit.x, WithinRel(0.6));
   REQUIRE_THAT(unit.y, WithinRel(0.8));
@@ -94,17 +94,18 @@ TEST_CASE("Vec3 UnitVector")
 
 TEST_CASE("Vec3 NearZero")
 {
-  Vec3 v1{.x = 1e-9, .y = 1e-9, .z = 1e-9};
-  Vec3 v2{.x = 1.0, .y = 0.0, .z = 0.0};
+  // NOTE: the number here is tied to what's defined in Vec3::NearZero
+  const Vec3 v1{.x = 1e-9, .y = 1e-9, .z = 1e-9};
+  const Vec3 v2{.x = 1.0, .y = 0.0, .z = 0.0};
   REQUIRE(v1.NearZero());
   REQUIRE_FALSE(v2.NearZero());
 }
 
 TEST_CASE("Vec3 Reflection")
 {
-  Vec3 v{.x = 1.0, .y = -1.0, .z = 0.0};
-  Vec3 normal{.x = 0.0, .y = 1.0, .z = 0.0};
-  Vec3 reflected = v.Reflect(normal);
+  const Vec3 v{.x = 1.0, .y = -1.0, .z = 0.0};
+  const Vec3 normal{.x = 0.0, .y = 1.0, .z = 0.0};
+  const Vec3 reflected = v.Reflect(normal);
   REQUIRE_THAT(reflected.x, WithinRel(1.0));
   REQUIRE_THAT(reflected.y, WithinRel(1.0));
   REQUIRE_THAT(reflected.z, WithinRel(0.0));
