@@ -7,7 +7,7 @@
 
 using namespace softrays;
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-TEST_CASE("softrays Bencmarking")
+TEST_CASE("softrays Benchmarking")
 {
   BENCHMARK("Simple Scene")
   {
