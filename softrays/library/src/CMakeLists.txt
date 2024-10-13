@@ -27,6 +27,7 @@ if(softrays_ENABLE_RAYLIB)
     # Tell Emscripten to build an example.html file.
     set_target_properties(${LIB_NAME} PROPERTIES SUFFIX ".html")
     target_link_options(${LIB_NAME} PUBLIC "-sUSE_GLFW=3")
+    target_link_options(${LIB_NAME} PUBLIC "-sALLOW_MEMORY_GROWTH=1")
     # NOTE: copy library binaries to release folder for web builds
   endif()
 
