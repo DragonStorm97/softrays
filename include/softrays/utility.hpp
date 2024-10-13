@@ -69,6 +69,7 @@ class HittableList : public Hittable {
     return hit_anything;
   }
 };
+
 constexpr double LinearToGamma(double linear_component)
 {
   if (linear_component > 0)
