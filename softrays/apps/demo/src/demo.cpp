@@ -1,4 +1,5 @@
 #include "material.hpp"
+#include "math.hpp"
 #include "raytracer.hpp"
 #include "shapes.hpp"
 #include "utility.hpp"
@@ -29,7 +30,7 @@ void RenderLoopCallback(void* arg);
 // but is slightly slower if build without
 
 constexpr Dimension2d screen{.Width = 600, .Height = 600};
-constexpr Dimension2d renderDim{.Width = 200, .Height = 200};
+constexpr Dimension2d renderDim{.Width = 400, .Height = 400};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -41,6 +42,10 @@ class Renderer {
 
   Dimension2d ScreenDim{screen};
   Dimension2d RenderDim{renderDim};
+  bool RenderAtScreenDim = true;
+  bool IncrementalRender = true;
+  std::size_t LastRenderedPixel{};
+  double LastCompleteDrawTime{};
 
   void SetupViewport(const Dimension2d& dim)
   {
@@ -80,21 +85,41 @@ class Renderer {
 
     if (static_cast<std::size_t>(windowHeight) * static_cast<std::size_t>(windowWidth) != (static_cast<std::size_t>(ScreenDim.Width * ScreenDim.Height))) {
       std::cout << "resizing viewport (" << windowWidth << "x" << windowHeight << ")(" << ScreenDim.Width << "x" << ScreenDim.Height << "\n";
-      SetupViewport({.Width = windowWidth, .Height = windowHeight});
+      ScreenDim.Width = windowWidth;
+      ScreenDim.Height = windowHeight;
+      if (RenderAtScreenDim) {
+        SetupViewport({.Width = windowWidth, .Height = windowHeight});
+      }
     }
 
     BeginDrawing();
     ClearBackground(raylib::Color::DarkGray());
 
-    raytracer.Render();
+    if (IncrementalRender) {
+      if (LastRenderedPixel >= (static_cast<std::size_t>(RenderDim.Width) * static_cast<std::size_t>(RenderDim.Height))) {
+        LastRenderedPixel = 0;
+        std::cout << "Frame Render took:" << GetTime() - LastCompleteDrawTime << "s\n";
+        LastCompleteDrawTime = GetTime();
+      }
+      int nextY = static_cast<int>(LastRenderedPixel / static_cast<std::size_t>(RenderDim.Width));
+      int nextX = static_cast<int>(LastRenderedPixel % static_cast<std::size_t>(RenderDim.Width));
+      LastRenderedPixel += static_cast<std::size_t>(RenderDim.Width) / 4;
+      raytracer.Render(nextX, nextY, nextX + (renderDim.Width / 4), nextY + 1);
+    } else {
+      raytracer.Render();
+    }
+
     RenderTarget.Update(raytracer.GetRGBAData().data());
 
     RenderTarget.Draw(Rectangle{0, 0, static_cast<float>(RenderDim.Width), static_cast<float>(RenderDim.Height)}, Rectangle{0, 0, static_cast<float>(ScreenDim.Width), static_cast<float>(ScreenDim.Height)});
     // NOTE: Render texture must be y-flipped due to default OpenGL coordinates (left-bottom) (our raytracer takes care of that already)
     // target->Draw(Rectangle{0, 0, static_cast<float>(target->width), static_cast<float>(target->height)}, {0, 0}, WHITE);
 
-    // raylib::DrawText(TextFormat("%3.3f fps @ %3.4f seconds %1d spp", fps, time, raytracer.GetSamplesPerPixel()), 10, 10, 30, raylib::Color::Green());  // NOLINT
-    std::cout << fps << "fps | " << time << " Seconds @ " << raytracer.GetSamplesPerPixel() << '\n';
+    if (fps < 1.0) {
+      std::cout << fps << "fps | " << time << " Seconds @ " << raytracer.GetSamplesPerPixel() << '\n';
+    } else if (!std::isinf(fps) && !IncrementalRender) {
+      raylib::DrawText(TextFormat("%3.3f fps @ %3.4f seconds %1d spp", fps, time, raytracer.GetSamplesPerPixel()), 10, 10, 30, raylib::Color::Green());  // NOLINT
+    }
 
     EndDrawing();
   }
@@ -142,11 +167,11 @@ class Renderer {
 
     // Have use lower quality settings for web builds
 #if defined(PLATFORM_WEB)
-    raytracer.SetSamplesPerPixel(5);
+    raytracer.SetSamplesPerPixel(25);
     raytracer.MaxDepth = 10;
 #else
-    raytracer.SetSamplesPerPixel(20);
-    raytracer.MaxDepth = 10;
+    raytracer.SetSamplesPerPixel(50);
+    raytracer.MaxDepth = 20;
 #endif
     raytracer.FieldOfView = 40;
     raytracer.LookFrom = Point3(13, 2, 3);
@@ -198,7 +223,7 @@ int main()
 void RenderLoopCallback(void* arg)
 {
   static bool was_drawn = false;
-  if (!was_drawn) {
+  if (static_cast<Renderer*>(arg)->IncrementalRender || !was_drawn) {
     static_cast<Renderer*>(arg)->UpdateDrawFrame();
     was_drawn = true;
   }

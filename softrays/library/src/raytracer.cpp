@@ -42,6 +42,11 @@ void RayTracer::SetupCamera()
 
 void RayTracer::Render()
 {
+  Render(0, 0, ViewportDimensions.Width, ViewportDimensions.Height);
+}
+
+void RayTracer::Render(int fromX, int fromY, int toX, int toY)
+{
   SetupCamera();
 
   const auto theta = DegreesToRadians(FieldOfView);
@@ -68,8 +73,8 @@ void RayTracer::Render()
   DefocusDisk_u = Camera_u * defocus_radius;
   DefocusDisk_v = Camera_v * defocus_radius;
 
-  for (int y = 0; y < ViewportDimensions.Height; ++y) {
-    for (int x = 0; x < ViewportDimensions.Width; ++x) {
+  for (int y = fromY; y < toY; ++y) {
+    for (int x = fromX; x < toX; ++x) {
       Colour pixel_colour{};
       if (SamplesPerPixel > 1) {
         for (int sample = 0; sample < SamplesPerPixel; ++sample) {

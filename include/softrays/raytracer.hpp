@@ -55,6 +55,7 @@ class RayTracer {
   [[nodiscard]] Ray GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const;
   [[nodiscard]] const std::vector<std::uint8_t>& GetRGBAData();
   void SetupCamera();
+  void Render(int fromX, int fromY, int toX, int toY);
   void Render();
   [[nodiscard]] const std::vector<Colour>& GetPixelData() const { return PixelData; }
 };
