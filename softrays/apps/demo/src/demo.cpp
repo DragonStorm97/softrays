@@ -29,8 +29,8 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr Dimension2d screen{.Width = 600, .Height = 600};
-constexpr Dimension2d renderDim{.Width = 400, .Height = 400};
+constexpr Dimension2d screen{.Width = 800, .Height = 600};
+constexpr Dimension2d renderDim{.Width = 400, .Height = 300};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -42,7 +42,7 @@ class Renderer {
 
   Dimension2d ScreenDim{screen};
   Dimension2d RenderDim{renderDim};
-  bool RenderAtScreenDim = true;
+  bool RenderAtScreenDim = false;
   bool IncrementalRender = true;
   std::size_t LastRenderedPixel{};
   double LastCompleteDrawTime{};
