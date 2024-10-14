@@ -1,3 +1,4 @@
+#include "bvh.hpp"
 #include "material.hpp"
 #include "math.hpp"
 #include "raytracer.hpp"
@@ -10,9 +11,11 @@
 #include <raylib-cpp.hpp>
 #include <raylib.h>
 
+using softrays::BVH;
 using softrays::Colour;
 using softrays::Dielectric;
 using softrays::Dimension2d;
+using softrays::HittableList;
 using softrays::Lambertian;
 using softrays::Metal;
 using softrays::Point3;
@@ -164,6 +167,9 @@ class Renderer {
 
     auto material3 = std::make_shared<Metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
+    // TODO: I hate the way this currently works, we shouldn't be overwriting the list, it should be a bvh from the start...
+    world = HittableList(std::make_shared<BVH>(world));
 
     // Have use lower quality settings for web builds
 #if defined(PLATFORM_WEB)

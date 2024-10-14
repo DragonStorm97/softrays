@@ -63,6 +63,16 @@ struct Vec3 {
     return {.x = x * vec.x, .y = y * vec.y, .z = z * vec.z};
   }
 
+  [[nodiscard]] constexpr Vec3 operator+(double val) const noexcept
+  {
+    return {.x = val + x, .y = val + y, .z = val + z};
+  }
+
+  [[nodiscard]] constexpr Vec3 operator-(double val) const noexcept
+  {
+    return {.x = x - val, .y = y - val, .z = z - val};
+  }
+
   [[nodiscard]] constexpr Vec3 operator*(double val) const noexcept
   {
     return {.x = val * x, .y = val * y, .z = val * z};
@@ -147,6 +157,11 @@ struct Vec3 {
         return rand;
     }
   }
+
+  [[nodiscard]] double operator[](this auto& self, std::size_t idx)
+  {
+    return idx == 0 ? self.x : (idx == 1 ? self.y : self.z);
+  }
 };
 
 // point3 is just an alias for vec3, but useful for geometric clarity in the code.
@@ -183,6 +198,13 @@ struct Interval {
   double Min = Infinity;
   double Max = -Infinity;
 
+  [[nodiscard]] static Interval FromIntervals(const Interval& a, const Interval& b)
+  {
+    // Create the interval tightly enclosing the two input intervals.
+    return {.Min = a.Min <= b.Min ? a.Min : b.Min,
+        .Max = a.Max >= b.Max ? a.Max : b.Max};
+  }
+
   [[nodiscard]] double Size() const noexcept
   {
     return Max - Min;
@@ -202,6 +224,13 @@ struct Interval {
   {
     return std::clamp(x, Min, Max);
   }
+
+  [[nodiscard]] Interval Expand(double delta) const noexcept
+  {
+    const auto padding = delta / 2.0;
+    return {.Min = Min - padding, .Max = Max + padding};
+  }
+
   const static Interval Empty;
   const static Interval Universe;
 };

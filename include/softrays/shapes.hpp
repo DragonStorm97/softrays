@@ -12,11 +12,17 @@ class Sphere : public Hittable {
   Point3 Center;
   double Radius;
   std::shared_ptr<MaterialBase> Material;
+  AABB bbox;
 
   public:
   Sphere(const Point3& center, double radius, std::shared_ptr<MaterialBase>&& mat) noexcept
-      : Center(center), Radius(std::fmax(0, radius)), Material(std::move(mat))
+      : Center(center), Radius(std::fmax(0, radius)), Material(std::move(mat)), bbox(Center - radius, Center + radius)
   {
+  }
+
+  [[nodiscard]] const AABB& BoundingBox() const override
+  {
+    return bbox;
   }
 
   [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override

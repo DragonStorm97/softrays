@@ -1,5 +1,6 @@
 #pragma once
 
+#include "aabb.hpp"
 #include "math.hpp"
 
 #include <cmath>
@@ -37,6 +38,7 @@ class Hittable {
   Hittable& operator=(const Hittable&) = default;
   Hittable& operator=(Hittable&&) = default;
   virtual ~Hittable() = default;
+  [[nodiscard]] virtual const AABB& BoundingBox() const = 0;
   [[nodiscard]] virtual bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const = 0;
 };
 
@@ -44,15 +46,23 @@ class Hittable {
 // should really be using a spatial data structure
 class HittableList : public Hittable {
   private:
+  AABB bbox;
+
   std::vector<std::shared_ptr<Hittable>> Objects;
 
   public:
+  HittableList() = default;
+  HittableList(std::shared_ptr<Hittable>&& object) { Add(std::move(object)); }
   void Clear() { Objects.clear(); }
   void Add(std::shared_ptr<Hittable>&& object)
   {
+    bbox = AABB(bbox, object->BoundingBox());
     Objects.push_back(std::move(object));
   }
 
+  [[nodiscard]] auto& GetObjects() { return Objects; }
+  [[nodiscard]] const auto& GetObjects() const { return Objects; }
+  [[nodiscard]] const AABB& BoundingBox() const override { return bbox; }
   [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
   {
     HitData temp_hit{};
