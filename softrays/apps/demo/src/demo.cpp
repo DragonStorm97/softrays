@@ -25,7 +25,7 @@ void RenderLoopCallback(void* arg);
 // but is slightly slower if build without
 
 constexpr Dimension2d screen{.Width = 800, .Height = 600};
-constexpr Dimension2d renderDim{.Width = 400, .Height = 300};
+constexpr Dimension2d renderDim{.Width = 800, .Height = 600};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -156,7 +156,7 @@ class Renderer {
     auto material1 = std::make_shared<Dielectric>(1.5);
     world.Add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
 
-    auto material2 = std::make_shared<Lambertian>(Colour(0.4, 0.2, 0.1));
+    auto material2 = std::make_shared<Lambertian>(std::make_shared<NoiseTexture>(Colour(0.4, 0.2, 0.1), 4));
     world.Add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
 
     auto material3 = std::make_shared<Metal>(Colour(0.7, 0.6, 0.5), 0.0);
@@ -170,11 +170,11 @@ class Renderer {
     raytracer.SetSamplesPerPixel(25);
     raytracer.MaxDepth = 10;
 #else
-    raytracer.SetSamplesPerPixel(50);
-    raytracer.MaxDepth = 20;
+    raytracer.SetSamplesPerPixel(100);
+    raytracer.MaxDepth = 30;
 #endif
     raytracer.FieldOfView = 40;
-    raytracer.LookFrom = Point3(13, 2, 3);
+    raytracer.LookFrom = Point3(0, 3, 13);
     raytracer.LookAt = Point3(0, 0, 0);
     raytracer.CameraUp = Vec3(0, 1, 0);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "math.hpp"
+#include "perlin.hpp"
 #include <memory>
 #include <raylib-cpp.hpp>
 #include <utility>
@@ -86,5 +87,20 @@ class ImageTexture : public Texture {
 
   private:
   raylib::Image image;
+};
+
+class NoiseTexture : public Texture {
+  public:
+  NoiseTexture(Colour colour, double scale) : Texture(colour), scale(scale) { }
+  NoiseTexture(double scale) : scale(scale) { }
+  NoiseTexture(Colour colour) : Texture(colour) { }
+  [[nodiscard]] Colour Value([[maybe_unused]] double u, [[maybe_unused]] double v, [[maybe_unused]] const Point3& loc) const override
+  {
+    return Tint * Colour{0.5, 0.5, 0.5} * (1 + std::sin(scale * loc.z + 10 * noise.turb(loc, 7)));
+  }
+
+  private:
+  Perlin noise;
+  double scale{1};
 };
 }
