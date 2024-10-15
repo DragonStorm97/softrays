@@ -51,7 +51,7 @@ class Sphere : public Hittable {
     hit.Location = ray.At(hit.Time);
     const Vec3 outward_normal = (hit.Location - Center) / Radius;
     hit.SetFaceNormal(ray, outward_normal);
-    GetUV(hit.Location, hit.U, hit.V);
+    GetUV(hit.Normal, hit.U, hit.V);
     hit.Material = Material;
     return true;
   }

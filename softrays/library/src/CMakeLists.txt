@@ -20,7 +20,7 @@ add_library(${LIB_NAME} STATIC ${SOURCES})
 
 if(softrays_ENABLE_RAYLIB)
   #set(raylib_VERBOSE 1)
-  target_link_libraries(${LIB_NAME} raylib)
+  target_link_libraries(${LIB_NAME} raylib raylib_cpp)
 
   # Web Configurations
   if(${PLATFORM} STREQUAL "Web")

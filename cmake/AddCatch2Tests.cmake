@@ -39,6 +39,10 @@ function(add_catch2_tests app_name is_lib is_standalone)
       # target_link_libraries(${test_name} PRIVATE ${app_name} Catch2::Catch2WithMain)
       target_link_libraries(${test_name} PRIVATE Catch2::Catch2WithMain)
 
+      if(softrays_ENABLE_RAYLIB)
+        target_link_libraries(${test_name} PRIVATE raylib raylib_cpp)
+      endif()
+
       catch_discover_tests(${test_name} LABEL ${app_name})
 
       if(${test_name} MATCHES "^relaxed.*")

@@ -11,7 +11,6 @@ using softrays::HitData;
 using softrays::Lambertian;
 using softrays::Metal;
 using softrays::Point3;
-using softrays::Ray;
 using softrays::Vec3;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
@@ -20,13 +19,13 @@ TEST_CASE("Lambertian scatter test")
   Colour albedo(0.8, 0.3, 0.3);  // Define an albedo (color)
   Lambertian lambertian(albedo);
 
-  Ray ray(Point3(0, 0, 0), Vec3(0, 0, 1));  // Incident ray
+  softrays::Ray ray(Point3(0, 0, 0), Vec3(0, 0, 1));  // Incident ray
   HitData hit_data;
   hit_data.Location = Point3(0, 0, 1);
   hit_data.Normal = Vec3(0, 0, 1);
 
   Colour attenuation;
-  Ray scattered;
+  softrays::Ray scattered;
 
   // Test scattering
   REQUIRE(lambertian.Scatter(ray, hit_data, attenuation, scattered));
@@ -51,13 +50,13 @@ TEST_CASE("Metal scatter test")
   double fuzz = 0.3;
   Metal metal(albedo, fuzz);
 
-  Ray ray(Point3(0, 0, 0), Vec3(0, 0, 1));  // Incident ray
+  softrays::Ray ray(Point3(0, 0, 0), Vec3(0, 0, 1));  // Incident ray
   HitData hit_data;
   hit_data.Location = Point3(0, 0, 1);
   hit_data.Normal = Vec3(0, 0, 1);
 
   Colour attenuation;
-  Ray scattered;
+  softrays::Ray scattered;
 
   // Test scattering
   [[maybe_unused]] auto was_scattered = (metal.Scatter(ray, hit_data, attenuation, scattered));
@@ -82,14 +81,14 @@ TEST_CASE("Dielectric scatter test - refraction")
   double refraction_index = 1.5;  // Glass-like material
   Dielectric dielectric(refraction_index);
 
-  Ray ray(Point3(0, 0, 0), Vec3(0, 0, 1));  // Incident ray
+  softrays::Ray ray(Point3(0, 0, 0), Vec3(0, 0, 1));  // Incident ray
   HitData hit_data;
   hit_data.Location = Point3(0, 0, 1);
   hit_data.Normal = Vec3(0, 0, 1);
-  hit_data.FrontFace = true;  // Ray is coming from outside (air) into the dielectric
+  hit_data.FrontFace = true;  // softrays::Ray is coming from outside (air) into the dielectric
 
   Colour attenuation;
-  Ray scattered;
+  softrays::Ray scattered;
 
   // Test scattering (should refract)
   REQUIRE(dielectric.Scatter(ray, hit_data, attenuation, scattered));
@@ -110,15 +109,15 @@ TEST_CASE("Dielectric scatter test - total internal reflection")
   double refraction_index = 1.5;  // Glass-like material
   Dielectric dielectric(refraction_index);
 
-  // Ray coming from inside the material (refraction will fail, should reflect)
-  Ray ray(Point3(0, 0, 0), Vec3(0, 0, -1));  // Incident ray
+  // softrays::Ray coming from inside the material (refraction will fail, should reflect)
+  softrays::Ray ray(Point3(0, 0, 0), Vec3(0, 0, -1));  // Incident ray
   HitData hit_data;
   hit_data.Location = Point3(0, 0, 1);
   hit_data.Normal = Vec3(0, 0, 1);
-  hit_data.FrontFace = false;  // Ray is coming from inside the dielectric
+  hit_data.FrontFace = false;  // softrays::Ray is coming from inside the dielectric
 
   Colour attenuation;
-  Ray scattered;
+  softrays::Ray scattered;
 
   // Test scattering (should reflect due to total internal reflection)
   REQUIRE(dielectric.Scatter(ray, hit_data, attenuation, scattered));

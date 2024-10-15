@@ -6,6 +6,7 @@
 #include "texture.hpp"
 #include "utility.hpp"
 
+#include <Image.hpp>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
@@ -78,7 +79,7 @@ class Renderer {
     const auto windowHeight = GetScreenHeight();
 
     if (static_cast<std::size_t>(windowHeight) * static_cast<std::size_t>(windowWidth) != (static_cast<std::size_t>(ScreenDim.Width * ScreenDim.Height))) {
-      std::cout << "resizing viewport (" << windowWidth << "x" << windowHeight << ")(" << ScreenDim.Width << "x" << ScreenDim.Height << "\n";
+      std::cout << "resizing viewport (" << windowWidth << "x" << windowHeight << ")(" << ScreenDim.Width << "x" << ScreenDim.Height << ")\n";
       ScreenDim.Width = windowWidth;
       ScreenDim.Height = windowHeight;
       if (RenderAtScreenDim) {
@@ -125,8 +126,9 @@ class Renderer {
     // Create the Scene:
 
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-    auto checker = std::make_shared<softrays::CheckeredTexture>(0.32, Colour(.2, .3, .1), Colour(.9, .9, .9));
-    auto ground_material = std::make_shared<Lambertian>(checker);  // NOLINT
+    // auto checker = std::make_shared<softrays::CheckeredTexture>(0.32, Colour(.2, .3, .1), Colour(.9, .9, .9));
+    auto ground_material = std::make_shared<Lambertian>(std::make_shared<softrays::ImageTexture>("resources/uvtest.png"));  // NOLINT
+    // auto ground_material = std::make_shared<Lambertian>(earth);  // NOLINT
     world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {

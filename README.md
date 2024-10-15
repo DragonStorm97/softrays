@@ -36,6 +36,8 @@ based off of [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/R
 - [ ] More Unit Tests
 - [ ] Book 3 [_Ray Tracing: The Rest of Your Life_](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html)
 - [ ] More Unit Tests
+- [ ] `const` correctness validation
+- [ ] Minimize copies
 - [ ] Performance enhancements and deep-dives
   - [ ] Profiling
   - [ ] Data Layouts

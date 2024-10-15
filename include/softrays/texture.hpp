@@ -2,7 +2,9 @@
 
 #include "math.hpp"
 #include <memory>
+#include <raylib-cpp.hpp>
 #include <utility>
+
 namespace softrays {
 
 class Texture {
@@ -35,8 +37,8 @@ class SolidTexture : public Texture {
 
 class CheckeredTexture : public Texture {
   public:
-  CheckeredTexture(double scale, std::shared_ptr<Texture> even, std::shared_ptr<Texture> odd)
-      : inv_scale(1.0 / scale), even(std::move(even)), odd(std::move(odd)) { }
+  CheckeredTexture(double scale, std::shared_ptr<Texture> evenTexture, std::shared_ptr<Texture> oddTexture)
+      : inv_scale(1.0 / scale), even(std::move(evenTexture)), odd(std::move(oddTexture)) { }
 
   CheckeredTexture(double scale, const Colour& col1, const Colour& col2)
       : CheckeredTexture(scale, std::make_shared<SolidTexture>(col1), std::make_shared<SolidTexture>(col2)) { }
@@ -57,5 +59,32 @@ class CheckeredTexture : public Texture {
   double inv_scale{};
   std::shared_ptr<Texture> even;
   std::shared_ptr<Texture> odd;
+};
+
+class ImageTexture : public Texture {
+  public:
+  ImageTexture(Colour tint, const char* filename) : Texture(tint), image(filename) { image.Format(PIXELFORMAT_UNCOMPRESSED_R32G32B32); }
+  ImageTexture(const char* filename) : image(filename) { image.Format(PIXELFORMAT_UNCOMPRESSED_R32G32B32); }
+
+  [[nodiscard]] Colour Value(double u, double v, [[maybe_unused]] const Point3& loc) const override
+  {
+    // If we have no texture data, then return solid cyan as a debugging aid.
+    if (!image.IsReady())
+      return Colour{0, 1, 1};
+
+    // Clamp input texture coordinates to [0,1] x [1,0]
+    u = Interval(0, 1).Clamp(u);
+    v = 1.0 - Interval(0, 1).Clamp(v);  // Flip V to image coordinates
+
+    auto i = int(u * image.width);
+    auto j = int(v * image.height);
+    const auto& pixel = static_cast<float*>(image.data) + (static_cast<std::ptrdiff_t>(i * 3)) + (static_cast<std::ptrdiff_t>(j * 3));
+
+    auto color_scale = 1.0F;  // / 255.0F;
+    return Colour{double(color_scale * pixel[0]), double(color_scale * pixel[1]), double(color_scale * pixel[2])};
+  }
+
+  private:
+  raylib::Image image;
 };
 }

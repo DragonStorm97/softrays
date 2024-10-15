@@ -151,12 +151,7 @@ if(softrays_ENABLE_RAYLIB)
   FetchContent_MakeAvailable(raygui)
   
 # Include the raygui header path
-  include_directories(SYTSEM ${raygui_SOURCE_DIR}/src)
-  # add_custom_command(
-  #   TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-  #   COMMENT "Copy Resources"
-  #   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>/resources
-  #   DEPENDS ${CMAKE_PROJECT_NAME})
+  include_directories(SYSTEM ${raygui_SOURCE_DIR}/src)
 endif()
 
 # flecs:

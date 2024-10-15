@@ -14,7 +14,7 @@ Point3 RayTracer::DefocusDiskSample() const noexcept
   return CameraPosition + (DefocusDisk_u * rand.x) + (DefocusDisk_v * rand.y);
 }
 
-Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const
+softrays::Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3& pixel_delta_u, const Vec3& pixel_delta_v) const
 {
   // Construct a camera ray originating from the defocus disk and directed at a randomly
   // point around the pixel location x, y.
@@ -27,7 +27,7 @@ Ray RayTracer::GetRayForPixel(int x, int y, const Vec3& pixel00_loc, const Vec3&
   const auto ray_origin = (DefocusAngle <= 0) ? CameraPosition : DefocusDiskSample();
   const auto ray_direction = pixel_sample - ray_origin;
 
-  return Ray{.Origin = ray_origin, .Direction = ray_direction};
+  return softrays::Ray{.Origin = ray_origin, .Direction = ray_direction};
 }
 
 void RayTracer::SetupCamera()
@@ -84,7 +84,7 @@ void RayTracer::Render(int fromX, int fromY, int toX, int toY)
       } else {
         const auto pixel_center = pixel00_loc + (pixel_delta_u * x) + (pixel_delta_v * y);
         const auto ray_direction = pixel_center - CameraPosition;
-        const Ray ray(CameraPosition, ray_direction);
+        const softrays::Ray ray(CameraPosition, ray_direction);
         pixel_colour = RayColour(ray, MaxDepth, World);
       }
 
@@ -95,7 +95,7 @@ void RayTracer::Render(int fromX, int fromY, int toX, int toY)
 }
 
 // TODO: we have a maxDepth, so we could remove this recursion in favour of a static array and loop
-Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) const
+Colour RayTracer::RayColour(const softrays::Ray& ray, int depth, const Hittable& world) const
 {
   // If we've exceeded the ray bounce limit, no more light is gathered.
   if (depth <= 0) {
@@ -105,7 +105,7 @@ Colour RayTracer::RayColour(const Ray& ray, int depth, const Hittable& world) co
   HitData hit;
   constexpr auto minDist = 0.001;
   if (world.Hit(ray, {.Min = minDist, .Max = Infinity}, hit)) {
-    Ray scattered{};
+    softrays::Ray scattered{};
     Colour attenuation{};
     if (hit.Material->Scatter(ray, hit, attenuation, scattered)) {
       return RayColour(scattered, depth - 1, World) * attenuation;

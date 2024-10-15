@@ -15,7 +15,6 @@ using softrays::HittableList;
 using softrays::Interval;
 using softrays::Lambertian;
 using softrays::Point3;
-using softrays::Ray;
 using softrays::Sphere;
 using softrays::Vec3;
 
@@ -33,7 +32,7 @@ TEST_CASE("HittableList Hit function test")
   hittable_list.Add(std::move(sphere2));
 
   // Define a ray that should hit sphere1
-  Ray ray(Point3(0, 0, 0), Vec3(0, 0, -1));
+  softrays::Ray ray(Point3(0, 0, 0), Vec3(0, 0, -1));
 
   HitData hit_data;
   Interval ray_time{.Min = 0.01, .Max = softrays::Infinity};
@@ -68,7 +67,7 @@ TEST_CASE("HittableList Miss function test")
   hittable_list.Add(std::move(sphere));
 
   // Define a ray that misses the sphere
-  Ray ray(Point3(0, 0, 0), Vec3(0, 1, 0));  // Ray in +y direction (away from sphere)
+  softrays::Ray ray(Point3(0, 0, 0), Vec3(0, 1, 0));  // softrays::Ray in +y direction (away from sphere)
 
   HitData hit_data;
   Interval ray_time{.Min = 0.0, .Max = softrays::Infinity};

@@ -11,7 +11,6 @@ using softrays::HitData;
 using softrays::Interval;
 using softrays::MaterialBase;
 using softrays::Point3;
-using softrays::Ray;
 using softrays::Sphere;
 using softrays::Vec3;
 
@@ -27,7 +26,7 @@ TEST_CASE("Sphere ray intersection tests")
   // Test ray that hits the sphere
   SECTION("Ray hits the sphere")
   {
-    Ray ray(Point3(0.0, 0.0, -3.0), Vec3(0.0, 0.0, 1.0));  // Ray starting outside, heading toward the sphere
+    softrays::Ray ray(Point3(0.0, 0.0, -3.0), Vec3(0.0, 0.0, 1.0));  // softrays::Ray starting outside, heading toward the sphere
     Interval interval(0.001, softrays::Infinity);  // Valid ray time interval
     HitData hit_data;
 
@@ -42,7 +41,7 @@ TEST_CASE("Sphere ray intersection tests")
   // Test ray that misses the sphere
   SECTION("Ray misses the sphere")
   {
-    Ray ray(Point3(0.0, 0.0, -3.0), Vec3(1.0, 0.0, 0.0));  // Ray heading in the x-direction, missing the sphere
+    softrays::Ray ray(Point3(0.0, 0.0, -3.0), Vec3(1.0, 0.0, 0.0));  // softrays::Ray heading in the x-direction, missing the sphere
     Interval interval(0.001, softrays::Infinity);
     HitData hit_data;
 
@@ -52,7 +51,7 @@ TEST_CASE("Sphere ray intersection tests")
   // Test ray that starts inside the sphere
   SECTION("Ray starts inside the sphere")
   {
-    Ray ray(Point3(0.0, 0.0, 0.5), Vec3(0.0, 0.0, 1.0));  // Ray starting inside the sphere
+    softrays::Ray ray(Point3(0.0, 0.0, 0.5), Vec3(0.0, 0.0, 1.0));  // softrays::Ray starting inside the sphere
     Interval interval(0.001, softrays::Infinity);
     HitData hit_data;
 
@@ -70,7 +69,7 @@ TEST_CASE("Sphere ray intersection tests")
   // Test ray that tangentially touches the sphere
   SECTION("Ray tangentially touches the sphere")
   {
-    Ray ray(Point3(-1.0, 0.0, -3.0), Vec3(0.0, 0.0, 1.0));  // Ray moving parallel to x-axis, tangent to the sphere
+    softrays::Ray ray(Point3(-1.0, 0.0, -3.0), Vec3(0.0, 0.0, 1.0));  // softrays::Ray moving parallel to x-axis, tangent to the sphere
     Interval interval(0.001, softrays::Infinity);
     HitData hit_data;
 
