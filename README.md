@@ -23,11 +23,19 @@ based off of [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/R
 - Utilities:
   - Vector maths
   - Random number generation
+- BVH
+- Programmatic Texturing
+- Texture Sampling
 
 ## What's next
 
 - [x] Major refactoring
 - [x] Unit Tests
+- [ ] Book 2 [_Ray Tracing The Next Week_](https://raytracing.github.io/books/RayTracingTheNextWeek.html)
+- [ ] Naming convention refactoring
+- [ ] More Unit Tests
+- [ ] Book 3 [_Ray Tracing: The Rest of Your Life_](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html)
+- [ ] More Unit Tests
 - [ ] Performance enhancements and deep-dives
   - [ ] Profiling
   - [ ] Data Layouts

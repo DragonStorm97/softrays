@@ -2,6 +2,8 @@
 
 #include "hittable.hpp"
 #include "math.hpp"
+#include "texture.hpp"
+#include <memory>
 
 namespace softrays {
 struct MaterialBase {
@@ -20,7 +22,8 @@ struct MaterialBase {
 
 class Lambertian : public MaterialBase {
   public:
-  Lambertian(const Colour& albedo) : Albedo(albedo) { }
+  Lambertian(std::shared_ptr<Texture> tex) : texture(std::move(tex)) { }
+  Lambertian(const Colour& albedo) : texture(std::make_shared<SolidTexture>(albedo)) { }
   [[nodiscard]] bool Scatter([[maybe_unused]] const Ray& r_in, const HitData& hit,
       Colour& attenuation, Ray& scattered) const override
   {
@@ -30,11 +33,10 @@ class Lambertian : public MaterialBase {
     if (scatter_direction.NearZero())
       scatter_direction = hit.Normal;
     scattered = {.Origin = hit.Location, .Direction = scatter_direction};
-    attenuation = Albedo;
+    attenuation = texture->Value(hit.U, hit.V, hit.Location);
     return true;
   }
-
-  Colour Albedo{};
+  std::shared_ptr<Texture> texture;
 };
 
 class Metal : public MaterialBase {

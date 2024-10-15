@@ -3,6 +3,7 @@
 #include "math.hpp"
 #include "raytracer.hpp"
 #include "shapes.hpp"
+#include "texture.hpp"
 #include "utility.hpp"
 
 #include <cmath>
@@ -11,17 +12,7 @@
 #include <raylib-cpp.hpp>
 #include <raylib.h>
 
-using softrays::BVH;
-using softrays::Colour;
-using softrays::Dielectric;
-using softrays::Dimension2d;
-using softrays::HittableList;
-using softrays::Lambertian;
-using softrays::Metal;
-using softrays::Point3;
-using softrays::RayTracer;
-using softrays::Sphere;
-using softrays::Vec3;
+using namespace softrays;
 
 #if defined(PLATFORM_WEB)
 #include <emscripten.h>
@@ -134,7 +125,8 @@ class Renderer {
     // Create the Scene:
 
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-    auto ground_material = std::make_shared<Lambertian>(Colour{0.5, 0.5, 0.5});  // NOLINT
+    auto checker = std::make_shared<softrays::CheckeredTexture>(0.32, Colour(.2, .3, .1), Colour(.9, .9, .9));
+    auto ground_material = std::make_shared<Lambertian>(checker);  // NOLINT
     world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) {
