@@ -1,7 +1,7 @@
 #pragma once
 
+#include "hittable.hpp"
 #include "material.hpp"
-#include "utility.hpp"
 
 #include <memory>
 #include <utility>

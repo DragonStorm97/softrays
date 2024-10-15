@@ -1,7 +1,7 @@
 #pragma once
 
+#include "hittable.hpp"
 #include "math.hpp"
-#include "utility.hpp"
 
 namespace softrays {
 struct MaterialBase {

@@ -1,6 +1,8 @@
 #pragma once
-#include "random.hpp"
-#include "utility.hpp"
+#include "aabb.hpp"
+#include "hittable.hpp"
+#include "math.hpp"
+#include <memory>
 
 namespace softrays {
 class BVH : public Hittable {

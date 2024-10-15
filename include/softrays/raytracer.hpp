@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hittable.hpp"
 #include "math.hpp"
 #include "utility.hpp"
 #include <cstdint>
