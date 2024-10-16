@@ -3,6 +3,7 @@
 #include "hittable.hpp"
 #include "material.hpp"
 
+#include <iostream>
 #include <memory>
 #include <utility>
 
@@ -68,7 +69,7 @@ class Sphere : public Hittable {
     auto theta = std::acos(-loc.y);
     auto phi = std::atan2(-loc.z, loc.x) + Pi;
 
-    u = phi / (2 * Pi);
+    u = phi / (2.0 * Pi);
     v = theta / Pi;
   }
 };
@@ -125,6 +126,7 @@ class Quad : public Hittable {
       return false;
 
     // Ray hits the 2D shape; set the rest of the hit record and return true.    hit.Time = time;
+    hit.Time = time;
     hit.Location = intersection;
     hit.Material = mat;
     hit.SetFaceNormal(ray, normal);
@@ -182,7 +184,7 @@ inline std::shared_ptr<HittableList> MakeBoxQuadList(const Point3& a, const Poin
 class Triangle : public Quad {
   public:
   Triangle(const Point3& o, const Vec3& aa, const Vec3& ab, std::shared_ptr<MaterialBase> m)
-      : Quad(o, aa, ab, m)
+      : Quad(o, aa, ab, std::move(m))
   {
   }
 
@@ -214,13 +216,11 @@ class Ellipse : public Quad {
   // NOTE: had to modify a & b, as the quad works off of the bottom corner to U & V, so we have to interpolate it
   [[nodiscard]] bool IsInterior(double a, double b, HitData& rec) const noexcept override
   {
-    a = a * 2.0 - 1.0;
-    b = b * 2.0 - 1.0;
-    if ((a * a + b * b) > 1)
+    const auto offset_a = a * 2.0 - 1.0;
+    const auto offset_b = b * 2.0 - 1.0;
+    if ((offset_a * offset_a + offset_b * offset_b) > 1)
       return false;
 
-    // rec.U = a / 2 + 0.5;
-    // rec.V = b / 2 + 0.5;
     rec.U = a;
     rec.V = b;
     return true;
@@ -246,14 +246,12 @@ class Annulus : public Quad {
   // NOTE: had to modify a & b, as the quad works off of the bottom corner to U & V, so we have to interpolate it
   [[nodiscard]] bool IsInterior(double a, double b, HitData& rec) const noexcept override
   {
-    a = a * 2.0 - 1.0;
-    b = b * 2.0 - 1.0;
-    const auto center_dist = sqrt(a * a + b * b);
+    const auto offset_a = a * 2.0 - 1.0;
+    const auto offset_b = b * 2.0 - 1.0;
+    const auto center_dist = sqrt(offset_a * offset_a + offset_b * offset_b);
     if ((center_dist < inner) || (center_dist > 1))
       return false;
 
-    // rec.U = a / 2 + 0.5;
-    // rec.V = b / 2 + 0.5;
     rec.U = a;
     rec.V = b;
     return true;

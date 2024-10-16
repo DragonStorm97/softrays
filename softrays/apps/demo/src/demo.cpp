@@ -128,6 +128,7 @@ class Renderer {
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
     // auto checker = std::make_shared<softrays::CheckeredTexture>(0.32, Colour(.2, .3, .1), Colour(.9, .9, .9));
     auto ground_material = std::make_shared<Lambertian>(std::make_shared<softrays::ImageTexture>("resources/uvtest.png"));  // NOLINT
+    // auto ground_material = std::make_shared<Lambertian>(std::make_shared<softrays::ImageTexture>("resources/earthmap.png"));  // NOLINT
     // auto ground_material = std::make_shared<Lambertian>(earth);  // NOLINT
     world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
@@ -157,20 +158,17 @@ class Renderer {
     world.Add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
 
     auto material2 = std::make_shared<Lambertian>(std::make_shared<NoiseTexture>(Colour(0.4, 0.2, 0.1), 4));
-    world.Add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+    world.Add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, ground_material));
 
     auto material3 = std::make_shared<Metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
-    auto material4 = std::make_shared<Metal>(Colour(0.2, 0.6, 0.5), 0.3);
-    world.Add(std::make_shared<Quad>(Point3(0, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, material4));
+    world.Add(std::make_shared<Quad>(Point3(0, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, ground_material));
 
-    auto material5 = std::make_shared<Metal>(Colour(0.9, 0.0, 0.0), 0.3);
-    world.Add(std::make_shared<Triangle>(Point3(2, 2, 0), Vec3{4, 2, 0}, Vec3{2, 4, 0}, material5));
+    world.Add(std::make_shared<Triangle>(Point3(2, 2, 0), Vec3{4, 2, 0}, Vec3{2, 4, 0}, ground_material));
 
-    auto material6 = std::make_shared<Metal>(Colour(0.0, 0.7, 0.0), 0.3);
-    world.Add(std::make_shared<Annulus>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, 0.5, material6));
-    // world.Add(std::make_shared<Ellipse>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, material6));
+    world.Add(std::make_shared<Annulus>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, 0.5, ground_material));
+    // world.Add(std::make_shared<Ellipse>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, ground_material));
 
     // auto material7 = std::make_shared<Metal>(Colour(0.0, 0.0, 0.9), 0.3);
     // world.Add(MakeBoxQuadList(Point3{-2, -2, -2}, Point3{2, 2, 2}, material7));
@@ -186,9 +184,9 @@ class Renderer {
     raytracer.SetSamplesPerPixel(100);
     raytracer.MaxDepth = 30;
 #endif
-    raytracer.FieldOfView = 50;
+    raytracer.FieldOfView = 30;
     raytracer.LookFrom = Point3(-4, 4, 13);
-    raytracer.LookAt = Point3(0, 0, 0);
+    raytracer.LookAt = Point3(0, 2, 0);
     raytracer.CameraUp = Vec3(0, 1, 0);
 
     raytracer.DefocusAngle = 0.6;

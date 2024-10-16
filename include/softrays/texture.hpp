@@ -65,7 +65,10 @@ class CheckeredTexture : public Texture {
 class ImageTexture : public Texture {
   public:
   ImageTexture(Colour tint, const char* filename) : Texture(tint), image(filename) { image.Format(PIXELFORMAT_UNCOMPRESSED_R32G32B32); }
-  ImageTexture(const char* filename) : image(filename) { image.Format(PIXELFORMAT_UNCOMPRESSED_R32G32B32); }
+  ImageTexture(const char* filename) : image(filename)
+  {
+    image.Format(PIXELFORMAT_UNCOMPRESSED_R32G32B32);
+  }
 
   [[nodiscard]] Colour Value(double u, double v, [[maybe_unused]] const Point3& loc) const override
   {
@@ -77,12 +80,12 @@ class ImageTexture : public Texture {
     u = Interval(0, 1).Clamp(u);
     v = 1.0 - Interval(0, 1).Clamp(v);  // Flip V to image coordinates
 
-    auto i = int(u * image.width);
-    auto j = int(v * image.height);
-    const auto& pixel = static_cast<float*>(image.data) + (static_cast<std::ptrdiff_t>(i * 3)) + (static_cast<std::ptrdiff_t>(j * 3));
+    const auto i = int(u * static_cast<double>(image.width));
+    const auto j = int(v * static_cast<double>(image.height));
+    const auto& pixel = static_cast<float*>(image.data) + (j * image.width * 3) + (i * 3);
 
-    auto color_scale = 1.0F;  // / 255.0F;
-    return Colour{double(color_scale * pixel[0]), double(color_scale * pixel[1]), double(color_scale * pixel[2])};
+    const auto color_scale = 1.0F;  // / 255.0F;
+    return Tint * Colour{double(color_scale * pixel[0]), double(color_scale * pixel[1]), double(color_scale * pixel[2])};
   }
 
   private:
