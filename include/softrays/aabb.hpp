@@ -11,12 +11,16 @@ struct AABB {
   AABB() noexcept = default;
 
   AABB(const Interval& x, const Interval& y, const Interval& z) noexcept
-      : X(x), Y(y), Z(z) { }
+      : X(x), Y(y), Z(z)
+  {
+    PadToMinimus();
+  }
 
   AABB(const AABB& box0, const AABB& box1) noexcept : X(Interval::FromIntervals(box0.X, box1.X)),
                                                       Y(Interval::FromIntervals(box0.Y, box1.Y)),
                                                       Z(Interval::FromIntervals(box0.Z, box1.Z))
   {
+    PadToMinimus();
   }
 
   // Treat the two points a and b as extrema for the bounding box, so we don't require a
@@ -26,6 +30,7 @@ struct AABB {
         Y((a.y <= b.y) ? Interval{a.y, b.y} : Interval{b.y, a.y}),
         Z((a.z <= b.z) ? Interval{a.z, b.z} : Interval{b.z, a.z})
   {
+    PadToMinimus();
   }
 
   [[nodiscard]] const Interval& AxisInterval(std::size_t axis) const
@@ -78,6 +83,17 @@ struct AABB {
       return Y.Size() > Z.Size() ? 1 : 2;
   }
 
+  // Adjust the AABB so that no side is narrower than some delta, padding if necessary.
+  void PadToMinimus() noexcept
+  {
+    static constexpr double delta = 0.0001;
+    if (X.Size() < delta)
+      X = X.Expand(delta);
+    if (Y.Size() < delta)
+      Y = Y.Expand(delta);
+    if (Z.Size() < delta)
+      Z = Z.Expand(delta);
+  }
   static const AABB Empty;
   static const AABB Universe;
 };

@@ -162,6 +162,19 @@ class Renderer {
     auto material3 = std::make_shared<Metal>(Colour(0.7, 0.6, 0.5), 0.0);
     world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
+    auto material4 = std::make_shared<Metal>(Colour(0.2, 0.6, 0.5), 0.3);
+    world.Add(std::make_shared<Quad>(Point3(0, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, material4));
+
+    auto material5 = std::make_shared<Metal>(Colour(0.9, 0.0, 0.0), 0.3);
+    world.Add(std::make_shared<Triangle>(Point3(2, 2, 0), Vec3{4, 2, 0}, Vec3{2, 4, 0}, material5));
+
+    auto material6 = std::make_shared<Metal>(Colour(0.0, 0.7, 0.0), 0.3);
+    world.Add(std::make_shared<Annulus>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, 0.5, material6));
+    // world.Add(std::make_shared<Ellipse>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, material6));
+
+    // auto material7 = std::make_shared<Metal>(Colour(0.0, 0.0, 0.9), 0.3);
+    // world.Add(MakeBoxQuadList(Point3{-2, -2, -2}, Point3{2, 2, 2}, material7));
+
     // TODO: I hate the way this currently works, we shouldn't be overwriting the list, it should be a bvh from the start...
     world = HittableList(std::make_shared<BVH>(world));
 
@@ -173,8 +186,8 @@ class Renderer {
     raytracer.SetSamplesPerPixel(100);
     raytracer.MaxDepth = 30;
 #endif
-    raytracer.FieldOfView = 40;
-    raytracer.LookFrom = Point3(0, 3, 13);
+    raytracer.FieldOfView = 50;
+    raytracer.LookFrom = Point3(-4, 4, 13);
     raytracer.LookAt = Point3(0, 0, 0);
     raytracer.CameraUp = Vec3(0, 1, 0);
 
