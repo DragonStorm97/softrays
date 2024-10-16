@@ -21,7 +21,7 @@ class Sphere : public Hittable {
   {
   }
 
-  [[nodiscard]] const AABB& BoundingBox() const override
+  [[nodiscard]] const AABB& BoundingBox() const noexcept override
   {
     return bbox;
   }
@@ -97,7 +97,7 @@ class Quad : public Hittable {
     bbox = AABB(bbox_diagonal1, bbox_diagonal2);
   }
 
-  [[nodiscard]] const AABB& BoundingBox() const override
+  [[nodiscard]] const AABB& BoundingBox() const noexcept override
   {
     return bbox;
   }
@@ -164,8 +164,8 @@ inline std::shared_ptr<HittableList> MakeBoxQuadList(const Point3& a, const Poin
   auto sides = std::make_shared<HittableList>();
 
   // Construct the two opposite vertices with the minimum and maximum coordinates.
-  auto min = Point3(fmin(a.x, b.x), fmin(a.y, b.y), fmin(a.z, b.z));
-  auto max = Point3(fmax(a.x, b.x), fmax(a.y, b.y), fmax(a.z, b.z));
+  auto min = Point3(std::fmin(a.x, b.x), std::fmin(a.y, b.y), std::fmin(a.z, b.z));
+  auto max = Point3(std::fmax(a.x, b.x), std::fmax(a.y, b.y), std::fmax(a.z, b.z));
 
   auto dx = Vec3(max.x - min.x, 0, 0);
   auto dy = Vec3(0, max.y - min.y, 0);

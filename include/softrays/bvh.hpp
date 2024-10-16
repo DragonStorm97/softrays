@@ -58,7 +58,7 @@ class BVH : public Hittable {
     return hit_left || hit_right;
   }
 
-  [[nodiscard]] const AABB& BoundingBox() const override { return bbox; }
+  [[nodiscard]] const AABB& BoundingBox() const noexcept override { return bbox; }
 
   private:
   std::shared_ptr<Hittable> left;

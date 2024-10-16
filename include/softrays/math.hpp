@@ -157,7 +157,7 @@ struct Vec3 {
     }
   }
 
-  [[nodiscard]] double operator[](this auto& self, std::size_t idx)
+  [[nodiscard]] auto&& operator[](this auto& self, std::size_t idx)
   {
     return idx == 0 ? self.x : (idx == 1 ? self.y : self.z);
   }
@@ -199,7 +199,7 @@ struct Interval {
 
   [[nodiscard]] static Interval FromIntervals(const Interval& a, const Interval& b)
   {
-    // Create the interval tightly enclosing the two input intervals.
+    // Create the Interval tightly enclosing the two input intervals.
     return {.Min = a.Min <= b.Min ? a.Min : b.Min,
         .Max = a.Max >= b.Max ? a.Max : b.Max};
   }
@@ -236,6 +236,16 @@ struct Interval {
 
 inline const Interval Interval::Empty = Interval{.Min = +Infinity, .Max = -Infinity};
 inline const Interval Interval::Universe = Interval{.Min = -Infinity, .Max = Infinity};
+
+inline Interval operator+(const Interval& ival, double displacement)
+{
+  return Interval(ival.Min + displacement, ival.Max + displacement);
+}
+
+inline Interval operator+(double displacement, const Interval& ival)
+{
+  return ival + displacement;
+}
 
 struct Ray {
   Point3 Origin;

@@ -35,7 +35,7 @@ class Hittable {
   Hittable& operator=(const Hittable&) = default;
   Hittable& operator=(Hittable&&) = default;
   virtual ~Hittable() = default;
-  [[nodiscard]] virtual const AABB& BoundingBox() const = 0;
+  [[nodiscard]] virtual const AABB& BoundingBox() const noexcept = 0;
   [[nodiscard]] virtual bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const = 0;
 };
 
@@ -48,9 +48,9 @@ class HittableList : public Hittable {
 
   public:
   HittableList() = default;
-  HittableList(std::shared_ptr<Hittable>&& object) { Add(std::move(object)); }
+  HittableList(std::shared_ptr<Hittable> object) { Add(std::move(object)); }
   void Clear() { Objects.clear(); }
-  void Add(std::shared_ptr<Hittable>&& object)
+  void Add(std::shared_ptr<Hittable> object)
   {
     bbox = AABB(bbox, object->BoundingBox());
     Objects.push_back(std::move(object));
@@ -58,7 +58,7 @@ class HittableList : public Hittable {
 
   [[nodiscard]] auto& GetObjects() { return Objects; }
   [[nodiscard]] const auto& GetObjects() const { return Objects; }
-  [[nodiscard]] const AABB& BoundingBox() const override { return bbox; }
+  [[nodiscard]] const AABB& BoundingBox() const noexcept override { return bbox; }
   [[nodiscard]] bool Hit(const Ray& ray, Interval ray_time, HitData& hit) const override
   {
     HitData temp_hit{};

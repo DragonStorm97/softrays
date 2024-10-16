@@ -4,12 +4,14 @@
 #include "raytracer.hpp"
 #include "shapes.hpp"
 #include "texture.hpp"
+#include "transforms.hpp"
 #include "utility.hpp"
 
 #include <Image.hpp>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <raylib-cpp.hpp>
 #include <raylib.h>
 
@@ -24,8 +26,8 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr Dimension2d screen{.Width = 1280, .Height = 1080};
-constexpr Dimension2d renderDim{.Width = 1280, .Height = 1080};
+constexpr Dimension2d screen{.Width = 800, .Height = 600};
+constexpr Dimension2d renderDim{.Width = 800, .Height = 600};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -171,11 +173,12 @@ class Renderer {
     world.Add(std::make_shared<Annulus>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, 0.5, ground_material));
     // world.Add(std::make_shared<Ellipse>(Point3(-3, 2, -2), Vec3{2, 0, 0}, Vec3{0, 2, 0}, ground_material));
 
-    // auto material7 = std::make_shared<Metal>(Colour(0.0, 0.0, 0.9), 0.3);
-    // world.Add(MakeBoxQuadList(Point3{-2, -2, -2}, Point3{2, 2, 2}, material7));
-
     auto textured_light_mat = std::make_shared<DiffuseLight>(3, uvtest_texture);
-    world.Add(std::make_shared<Sphere>(Point3(1, 1, 4), 0.5, textured_light_mat));
+    std::shared_ptr<Hittable> box = MakeBoxQuadList(Point3{-5, -4, 4}, Point3{-2, 1, -1}, textured_light_mat);
+    box = std::make_shared<Rotate_Y>(box, -18);
+    box = std::make_shared<Translate>(box, Vec3{0, 0, -1});
+    world.Add(box);
+    // world.Add(std::make_shared<Sphere>(Point3(1, 1, 4), 0.5, textured_light_mat));
     // TODO: I hate the way this currently works, we shouldn't be overwriting the list, it should be a bvh from the start...
     world = HittableList(std::make_shared<BVH>(world));
 
@@ -187,12 +190,12 @@ class Renderer {
     raytracer.SetSamplesPerPixel(100);
     raytracer.MaxDepth = 30;
 #endif
-    raytracer.FieldOfView = 30;
+    raytracer.FieldOfView = 50;
     raytracer.LookFrom = Point3(-4, 4, 13);
     raytracer.LookAt = Point3(0, 2, 0);
     raytracer.CameraUp = Vec3(0, 1, 0);
 
-    raytracer.DefocusAngle = 0.6;
+    raytracer.DefocusAngle = 0.1;
     raytracer.FocusDistance = 10.0;
     // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 

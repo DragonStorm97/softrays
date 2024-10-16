@@ -100,4 +100,14 @@ struct AABB {
 
 const inline AABB AABB::Empty = AABB(Interval::Empty, Interval::Empty, Interval::Empty);
 const inline AABB AABB::Universe = AABB(Interval::Universe, Interval::Universe, Interval::Universe);
+
+inline AABB operator+(const AABB& bbox, const Vec3& offset)
+{
+  return {bbox.X + offset.x, bbox.Y + offset.y, bbox.Z + offset.z};
+}
+
+inline AABB operator+(const Vec3& offset, const AABB& bbox)
+{
+  return bbox + offset;
+}
 }
