@@ -4,6 +4,7 @@
 #include "math.hpp"
 #include "texture.hpp"
 #include <memory>
+#include <utility>
 
 namespace softrays {
 struct MaterialBase {
@@ -14,6 +15,12 @@ struct MaterialBase {
   MaterialBase& operator=(MaterialBase&&) = delete;
 
   virtual ~MaterialBase() = default;
+
+  [[nodiscard]] virtual Colour emitted([[maybe_unused]] double u, [[maybe_unused]] double v, [[maybe_unused]] const Point3& loc) const noexcept
+  {
+    return {0, 0, 0};
+  }
+
   [[nodiscard]] virtual bool Scatter([[maybe_unused]] const Ray& ray, [[maybe_unused]] const HitData& hit, [[maybe_unused]] Colour& attenuation, [[maybe_unused]] Ray& scattered) const
   {
     return false;
@@ -89,5 +96,21 @@ class Dielectric : public MaterialBase {
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
     return r0 + ((1 - r0) * std::pow((1 - cosine), 5));
   }
+};
+
+class DiffuseLight : public MaterialBase {
+  public:
+  DiffuseLight(double scale, std::shared_ptr<Texture> tex) : emission_factor(scale), texture(std::move(tex)) { }
+  DiffuseLight(std::shared_ptr<Texture> tex) : texture(std::move(tex)) { }
+  DiffuseLight(const Colour& emit) : texture(std::make_shared<SolidTexture>(emit)) { }
+
+  [[nodiscard]] Colour emitted(double u, double v, const Point3& loc) const noexcept override
+  {
+    return texture->Value(u, v, loc) * emission_factor;
+  }
+
+  private:
+  double emission_factor{1.0};
+  std::shared_ptr<Texture> texture;
 };
 }

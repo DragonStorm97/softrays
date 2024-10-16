@@ -24,8 +24,8 @@ void RenderLoopCallback(void* arg);
 // NOTE: the web version 7X faster than the native one when the native one has coverage enabled,
 // but is slightly slower if build without
 
-constexpr Dimension2d screen{.Width = 800, .Height = 600};
-constexpr Dimension2d renderDim{.Width = 800, .Height = 600};
+constexpr Dimension2d screen{.Width = 1280, .Height = 1080};
+constexpr Dimension2d renderDim{.Width = 1280, .Height = 1080};
 constexpr auto maxFps = 60;
 
 class Renderer {
@@ -127,7 +127,8 @@ class Renderer {
 
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
     // auto checker = std::make_shared<softrays::CheckeredTexture>(0.32, Colour(.2, .3, .1), Colour(.9, .9, .9));
-    auto ground_material = std::make_shared<Lambertian>(std::make_shared<softrays::ImageTexture>("resources/uvtest.png"));  // NOLINT
+    auto uvtest_texture = std::make_shared<softrays::ImageTexture>("resources/uvtest.png");
+    auto ground_material = std::make_shared<Lambertian>(uvtest_texture);  // NOLINT
     // auto ground_material = std::make_shared<Lambertian>(std::make_shared<softrays::ImageTexture>("resources/earthmap.png"));  // NOLINT
     // auto ground_material = std::make_shared<Lambertian>(earth);  // NOLINT
     world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
@@ -173,6 +174,8 @@ class Renderer {
     // auto material7 = std::make_shared<Metal>(Colour(0.0, 0.0, 0.9), 0.3);
     // world.Add(MakeBoxQuadList(Point3{-2, -2, -2}, Point3{2, 2, 2}, material7));
 
+    auto textured_light_mat = std::make_shared<DiffuseLight>(3, uvtest_texture);
+    world.Add(std::make_shared<Sphere>(Point3(1, 1, 4), 0.5, textured_light_mat));
     // TODO: I hate the way this currently works, we shouldn't be overwriting the list, it should be a bvh from the start...
     world = HittableList(std::make_shared<BVH>(world));
 

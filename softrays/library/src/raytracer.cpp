@@ -104,20 +104,23 @@ Colour RayTracer::RayColour(const softrays::Ray& ray, int depth, const Hittable&
 
   HitData hit;
   constexpr auto minDist = 0.001;
-  if (world.Hit(ray, {.Min = minDist, .Max = Infinity}, hit)) {
-    softrays::Ray scattered{};
-    Colour attenuation{};
-    if (hit.Material->Scatter(ray, hit, attenuation, scattered)) {
-      return RayColour(scattered, depth - 1, World) * attenuation;
-    }
-    return {0, 0, 0};
+  if (!world.Hit(ray, {.Min = minDist, .Max = Infinity}, hit)) {
+    return BackgroundColour;
   }
+  softrays::Ray scattered{};
+  Colour attenuation{};
+  const Colour colour_from_emission = hit.Material->emitted(hit.U, hit.V, hit.Location);
+  if (!hit.Material->Scatter(ray, hit, attenuation, scattered)) {
+    return colour_from_emission;
+  }
+  const auto colour_from_scatter = RayColour(scattered, depth - 1, World) * attenuation;
 
-  Vec3 unit_direction = ray.Direction.UnitVector();
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-  auto a = 0.5 * (unit_direction.y + 1.0);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-  return (Colour{1.0, 1.0, 1.0} * (1.0 - a)) + (Colour{0.5, 0.7, 1.0} * a);
+  return colour_from_emission + colour_from_scatter;
+  // Vec3 unit_direction = ray.Direction.UnitVector();
+  // // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+  // auto a = 0.5 * (unit_direction.y + 1.0);
+  // // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
+  // return (Colour{1.0, 1.0, 1.0} * (1.0 - a)) + (Colour{0.5, 0.7, 1.0} * a);
 }
 
 void RayTracer::ResizeViewport(const Dimension2d& dim)

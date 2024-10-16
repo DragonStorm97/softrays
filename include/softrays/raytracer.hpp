@@ -11,6 +11,7 @@ class RayTracer {
   // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   Point3 CameraPosition{0, 0, 0};
 
+  Colour BackgroundColour{0.7, 0.8, 1.0};
   int MaxDepth = 50;  // Maximum number of bounces
   double FieldOfView = 90;  // Vertical view angle (field of view)
 
