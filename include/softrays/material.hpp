@@ -113,4 +113,21 @@ class DiffuseLight : public MaterialBase {
   double emission_factor{1.0};
   std::shared_ptr<Texture> texture;
 };
+
+class Isotropic : public MaterialBase {
+  public:
+  Isotropic(const Colour& albedo) : texture(std::make_shared<SolidTexture>(albedo)) { }
+  Isotropic(std::shared_ptr<Texture> tex) : texture(std::move(tex)) { }
+
+  [[nodiscard]] bool Scatter([[maybe_unused]] const Ray& ray, const HitData& hit,
+      Colour& attenuation, Ray& scattered) const override
+  {
+    scattered = Ray(hit.Location, Vec3::RandomUnitVector());
+    attenuation = texture->Value(hit.U, hit.V, hit.Location);
+    return true;
+  }
+
+  private:
+  std::shared_ptr<Texture> texture;
+};
 }
