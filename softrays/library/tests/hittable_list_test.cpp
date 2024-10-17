@@ -25,8 +25,8 @@ TEST_CASE("HittableList Hit function test")
 
   // Add two spheres to the list
   auto material = std::make_shared<Lambertian>(Colour(0.8, 0.3, 0.3));
-  auto sphere1 = std::make_shared<Sphere>(Point3(0, 0, -1), 0.5, std::move(material));  // Sphere 1
-  auto sphere2 = std::make_shared<Sphere>(Point3(0, -100.5, -1), 100, std::move(material));  // Sphere 2 (ground)
+  auto sphere1 = std::make_shared<Sphere>(Point3(0, 0, -1), 0.5, material);  // Sphere 1
+  auto sphere2 = std::make_shared<Sphere>(Point3(0, -100.5, -1), 100, material);  // Sphere 2 (ground)
 
   hittable_list.Add(std::move(sphere1));
   hittable_list.Add(std::move(sphere2));

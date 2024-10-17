@@ -89,7 +89,7 @@ class Quad : public Hittable {
     SetBoundingBox();
   }
 
-  virtual void SetBoundingBox()
+  void SetBoundingBox()
   {
     // Compute the bounding box of all four vertices.
     auto bbox_diagonal1 = AABB(Q, Q + u + v);
@@ -206,13 +206,6 @@ class Ellipse : public Quad {
   {
   }
 
-  void SetBoundingBox() override
-  {
-    const auto half_u = u / 2.0;
-    const auto half_v = v / 2.0;
-    bbox = AABB(Q - half_u - half_v, Q + half_u + half_v);
-  }
-
   // NOTE: had to modify a & b, as the quad works off of the bottom corner to U & V, so we have to interpolate it
   [[nodiscard]] bool IsInterior(double a, double b, HitData& rec) const noexcept override
   {
@@ -236,18 +229,14 @@ class Annulus : public Quad {
   {
   }
 
-  void SetBoundingBox() override
-  {
-    const auto half_u = u / 2.0;
-    const auto half_v = v / 2.0;
-    bbox = AABB(Q - half_u - half_v, Q + half_u + half_v);
-  }
-
   // NOTE: had to modify a & b, as the quad works off of the bottom corner to U & V, so we have to interpolate it
+  // we could offset the bounding box instead, so that the point given is the center, but we're leaving it as the
+  // bottom left to keep consistent with the quad
   [[nodiscard]] bool IsInterior(double a, double b, HitData& rec) const noexcept override
   {
     const auto offset_a = a * 2.0 - 1.0;
     const auto offset_b = b * 2.0 - 1.0;
+
     const auto center_dist = sqrt(offset_a * offset_a + offset_b * offset_b);
     if ((center_dist < inner) || (center_dist > 1))
       return false;
